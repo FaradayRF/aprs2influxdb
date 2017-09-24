@@ -2,13 +2,12 @@ import aprslib
 import configparser
 from influxdb import InfluxDBClient
 
-# test global
-influxConn = ''
-
 def callback(packet):
     packet = aprslib.parse(packet)
     if packet['to'] == 'GPSFDY':
         print packet
+        #slowwwwww
+        influxConn = connectInfluxDB()
         json_body = [
             {
                 "measurement": "cpu_load_short",
@@ -43,7 +42,7 @@ def main():
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
     AIS.connect()
-    influxConn = connectInfluxDB()
+
     # Obtain raw APRS-IS packets and sent to callback when received
     AIS.consumer(callback, raw=True)
 
