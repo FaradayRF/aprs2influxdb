@@ -8,19 +8,26 @@ def callback(packet):
         print packet
         #slowwwwww
         influxConn = connectInfluxDB()
-        json_body = [
-            {
-                "measurement": "packets",
-                "tags": {
-                    "callsign": packet['from']
-                },
-                "fields": {
-                    "latitude": packet['latitude'],
-                    "longitude": packet['longitude']
-                }
-            }
-        ]
-        influxConn.write(json_body)
+	try:
+	        json_body = [
+        	{
+        	"measurement": "packets",
+        	"tags": {
+        	    "from": packet["from"]
+        	},
+        	"fields": {
+        	    "latitude": packet["latitude"],
+		    "longitude": packet["longitude"],
+		    "altitude": packet["altitude"],
+		    "Analog0": packet["telemetry"]["vals"][0]
+        	}
+	    	}
+		]
+
+	except KeyError as e:
+		pass
+
+        influxConn.write_points(json_body)
 
 def connectInfluxDB():
 
