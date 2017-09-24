@@ -35,12 +35,12 @@ def jsonToLineProtocol(jsonData):
         measurement = "packet"
 
         try:
-            tags.append("from={0}".format(jsonData.get("from"))
-            tags.append("to={0}".format(jsonData.get("to"))
-            tags.append("symbolTable={0}".format(jsonData.get("symbol_table"))
-            tags.append("symbol={0}".format(jsonData.get("symbol"))
-            tags.append("format={0}".format(jsonData.get("format"))
-            tags.append("comment={0}".format(jsonData.get("comment"))
+            tags.append("from={0}".format(jsonData.get("from")))
+            tags.append("to={0}".format(jsonData.get("to")))
+            tags.append("symbolTable={0}".format(jsonData.get("symbol_table")))
+            tags.append("symbol={0}".format(jsonData.get("symbol")))
+            tags.append("format={0}".format(jsonData.get("format")))
+            tags.append("comment={0}".format(jsonData.get("comment")))
             tagStr = ",".join(tags)
 
         except KeyError as e:
@@ -48,11 +48,11 @@ def jsonToLineProtocol(jsonData):
             print jsonData
 
         try:
-            fields.append("latitude={0}".format(jsonData.get("latitude"))
-            fields.append("longitude={0}".format(jsonData.get("longitude"))
-            fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity"))
-            fields.append("altitude={0}".format(jsonData.get("altitude"))
-            fields.append("speed={0}".format(jsonData.get("speed"))
+            fields.append("latitude={0}".format(jsonData.get("latitude")))
+            fields.append("longitude={0}".format(jsonData.get("longitude")))
+            fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity")))
+            fields.append("altitude={0}".format(jsonData.get("altitude")))
+            fields.append("speed={0}".format(jsonData.get("speed")))
         except KeyError as e:
             print e
             print jsonData
@@ -73,7 +73,7 @@ def jsonToLineProtocol(jsonData):
 
         fieldsStr = ",".join(fields)
 
-        lineProtocolStr = " ".join(measurement,tagStr,fieldsStr)
+        lineProtocolStr = " ".join([measurement,tagStr,fieldsStr])
         print lineProtocolStr
 
     #line = "packet,from={0},geohash={9} latitude={1},longitude={2},altitude={3},analog0={4},analog1={5},analog2={6},analog3={7},analog4={8}"
