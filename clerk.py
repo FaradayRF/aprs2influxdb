@@ -2,32 +2,22 @@ import aprslib
 import configparser
 from influxdb import InfluxDBClient
 
+def jsonToLineProtocol(jsonData):
+    #Converts aprslib JSON to influxdb line protocol
+
+    line = "packets,from={0} latitude={1},longitude{2},altitude={3}"
+    try:
+        return line.format(jsonData["from"],jsonData["latitude"],jsonData["longitude"],jsonData["altitude"])
+    except StandardError as e:
+        print e
+
 def callback(packet):
     packet = aprslib.parse(packet)
     if packet['to'] == 'GPSFDY':
         print packet
         #slowwwwww
         influxConn = connectInfluxDB()
-	try:
-	        json_body = [
-        	{
-        	"measurement": "packets",
-        	"tags": {
-        	    "from": packet["from"]
-        	},
-        	"fields": {
-        	    "latitude": packet["latitude"],
-		    "longitude": packet["longitude"],
-		    "altitude": packet["altitude"],
-		    "Analog0": packet["telemetry"]["vals"][0]
-        	}
-	    	}
-		]
-
-	except KeyError as e:
-		pass
-
-        influxConn.write_points(json_body)
+        influxConn.write_points(jsonToLineProtocol(packet))
 
 def connectInfluxDB():
 
