@@ -34,19 +34,28 @@ def jsonToLineProtocol(jsonData):
 
         measurement = "packet"
 
-        tags.append("from={0}".format(jsonData["from"]))
-        tags.append("to={0}".format(jsonData["to"]))
-        tags.append("symbolTable={0}".format(jsonData["symbol_table"]))
-        tags.append("symbol={0}".format(jsonData["symbol"]))
-        tags.append("format={0}".format(jsonData["format"]))
-        tags.append("comment={0}".format(jsonData["comment"]))
-        tagStr = ",".join(tags)
+        try:
+            tags.append("from={0}".format(jsonData["from"]))
+            tags.append("to={0}".format(jsonData["to"]))
+            tags.append("symbolTable={0}".format(jsonData["symbol_table"]))
+            tags.append("symbol={0}".format(jsonData["symbol"]))
+            tags.append("format={0}".format(jsonData["format"]))
+            tags.append("comment={0}".format(jsonData["comment"]))
+            tagStr = ",".join(tags)
 
-        fields.append("latitude={0}".format(jsonData["latitude"]))
-        fields.append("longitude={0}".format(jsonData["longitude"]))
-        fields.append("posAmbiguity={0}".format(jsonData["posambiguity"]))
-        fields.append("altitude={0}".format(jsonData["altitude"]))
-        fields.append("speed={0}".format(jsonData["speed"]))
+        except KeyError as e:
+            print e
+            print jsonData
+
+        try:
+            fields.append("latitude={0}".format(jsonData["latitude"]))
+            fields.append("longitude={0}".format(jsonData["longitude"]))
+            fields.append("posAmbiguity={0}".format(jsonData["posambiguity"]))
+            fields.append("altitude={0}".format(jsonData["altitude"]))
+            fields.append("speed={0}".format(jsonData["speed"]))
+        except KeyError as e:
+            print e
+            print jsonData
 
         try:
             fields.append("sequenceNumber={0}".format(jsonData["seq"]))
