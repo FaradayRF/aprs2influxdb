@@ -1,17 +1,32 @@
 import aprslib
 import configparser
+import influxdb
 from influxdb import InfluxDBClient
+import Geohash
 
 def jsonToLineProtocol(jsonData):
     #Converts aprslib JSON to influxdb line protocol
 
-    line = "packets,from={0} latitude={1},longitude={2},altitude={3},analog0={4},analog1={5},analog2={6},analog3={7},analog4={8}"
+    line = "packets,from={0},geohash={9} latitude={1},longitude={2},altitude={3},analog0={4},analog1={5},analog2={6},analog3={7},analog4={8}"
+
     try:
-        a = line.format(jsonData["from"],jsonData["latitude"],jsonData["longitude"],jsonData["altitude"],jsonData["telemetry"]["vals"][0],jsonData["telemetry"]["vals"][1],jsonData["telemetry"]["vals"][2],jsonData["telemetry"]["vals"][3],jsonData["telemetry"]["vals"][4])
+        #geohashVal = ''
+        geohashVal =  Geohash.encode(jsonData["latitude"],jsonData["longitude"])
+        geohashVal = "\"" + geohashVal + "\""
+        #print geohashVal
+
+    except StandardError as e:
+        print e
+
+    try:
+        a = line.format(jsonData["from"],jsonData["latitude"],jsonData["longitude"],jsonData["altitude"],jsonData["telemetry"]["vals"][0],jsonData["telemetry"]["vals"][1],jsonData["telemetry"]["vals"][2],jsonData["telemetry"]["vals"][3],jsonData["telemetry"]["vals"][4],str(geohashVal))
         print a
 	return a
     except StandardError as e:
         pass
+
+    #except InfluxDB.ClientError as e:
+    #    print e
 
 def callback(packet):
     packet = aprslib.parse(packet)
@@ -22,7 +37,15 @@ def callback(packet):
     a = jsonToLineProtocol(packet)
     if a:
         print a
-        influxConn.write_points([a],protocol='line')
+	try:
+            influxConn.write_points([a],protocol='line')
+
+        except StandardError as e:
+            pass
+
+        except influxdb.exceptions.InfluxDBClientError as e:
+            print e
+
 
 def connectInfluxDB():
 
