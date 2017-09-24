@@ -57,15 +57,15 @@ def jsonToLineProtocol(jsonData):
             print e
             print jsonData
 
-        if jsonData["seq"]:
+        if jsonData["telemetry"]["seq"]:
             try:
-                fields.append("sequenceNumber={0}".format(jsonData["seq"]))
+                fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
                 fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
                 fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
                 fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
                 fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
                 fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-                fields.append("digital={0}".format(jsonData["digital"]))
+                fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
             except KeyError as e:
                 print e
