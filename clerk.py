@@ -57,18 +57,20 @@ def jsonToLineProtocol(jsonData):
             print e
             print jsonData
 
-        try:
-            fields.append("sequenceNumber={0}".format(jsonData["seq"]))
-            fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
-            fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
-            fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
-            fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
-            fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-            fields.append("digital={0}".format(jsonData["digital"]))
+        if jsonData["seq"]:
+            try:
+                fields.append("sequenceNumber={0}".format(jsonData["seq"]))
+                fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
+                fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
+                fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
+                fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
+                fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
+                fields.append("digital={0}".format(jsonData["digital"]))
 
-        except KeyError as e:
-            print e
-            print jsonData
+            except KeyError as e:
+                print e
+                print jsonData
+
         fieldsStr = ",".join(fields)
 
         lineProtocolStr = " ".join(measurement,tagStr,fieldsStr)
