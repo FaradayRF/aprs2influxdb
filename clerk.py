@@ -23,6 +23,10 @@ def connectInfluxDB():
     client = InfluxDBClient(host, port, user, password, dbname)
     print client
 
+    query = 'select * from cpu;'
+    result = client.query(query)
+    print result
+
 def main():
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
