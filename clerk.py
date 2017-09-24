@@ -10,14 +10,13 @@ def callback(packet):
         influxConn = connectInfluxDB()
         json_body = [
             {
-                "measurement": "cpu_load_short",
+                "measurement": "packets",
                 "tags": {
-                    "host": "server01",
-                    "region": "us-west"
+                    "callsign": packet['from']
                 },
-                "time": "2009-11-10T23:00:00Z",
                 "fields": {
-                    "value": 0.64
+                    "latitude": packet['latitude'],
+                    "longitude": packet['longitude']
                 }
             }
         ]
