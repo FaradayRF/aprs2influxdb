@@ -5,9 +5,9 @@ from influxdb import InfluxDBClient
 def jsonToLineProtocol(jsonData):
     #Converts aprslib JSON to influxdb line protocol
 
-    line = "packets,from={0} latitude={1},longitude={2},altitude={3}"
+    line = "packets,from={0} latitude={1},longitude={2},altitude={3},analog0={4},analog1={5},analog2={6},analog3={7},analog4={8}"
     try:
-        a = line.format(jsonData["from"],jsonData["latitude"],jsonData["longitude"],jsonData["altitude"])
+        a = line.format(jsonData["from"],jsonData["latitude"],jsonData["longitude"],jsonData["altitude"],jsonData["telemetry"]["vals"][0],jsonData["telemetry"]["vals"][1],jsonData["telemetry"]["vals"][2],jsonData["telemetry"]["vals"][3],jsonData["telemetry"]["vals"][4])
         print a
 	return a
     except StandardError as e:
