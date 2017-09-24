@@ -20,21 +20,15 @@ def connectInfluxDB():
     dbuser = config['influx']['dbuser']
     dbuser_password = config['influx']['dbuserpassword']
 
-    client = InfluxDBClient(host, port, user, password, dbname)
-    print client
-
-    query = 'select * from cpu;'
-    result = client.query(query)
-    print result
+    return InfluxDBClient(host, port, user, password, dbname)
 
 def main():
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
     AIS.connect()
-    connectInfluxDB()
+    influxConn = connectInfluxDB()
     # Obtain raw APRS-IS packets and sent to callback when received
     AIS.consumer(callback, raw=True)
-    print "woot"
 
 if __name__ == "__main__":
     main()
