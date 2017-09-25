@@ -136,8 +136,6 @@ def connectInfluxDB():
 
 def main():
     # Start logger
-    #logging.getLogger("DrWatson")
-    #logger = logging.getLogger("DrWatson")
 
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
