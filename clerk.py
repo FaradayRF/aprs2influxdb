@@ -40,12 +40,19 @@ def jsonToLineProtocol(jsonData):
             tags.append("symbolTable={0}".format(jsonData.get("symbol_table")))
             tags.append("symbol={0}".format(jsonData.get("symbol")))
             tags.append("format={0}".format(jsonData.get("format")))
-            tags.append("comment={0}".format(repr(jsonData.get("comment"))))
-            tagStr = ",".join(tags)
 
         except KeyError as e:
             print e
             print jsonData
+
+        try:
+            tags.append("comment={0}".format(jsonData.get("comment")))
+
+        except KeyError as e:
+            print e
+            print jsonData
+
+        tagStr = ",".join(tags)
 
         try:
             fields.append("latitude={0}".format(jsonData.get("latitude")))
