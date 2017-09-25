@@ -31,6 +31,7 @@ def jsonToLineProtocol(jsonData):
         # initialize variables
         tags = []
         fields = []
+	comment = r" "
 
         measurement = "packet"
 
@@ -46,7 +47,10 @@ def jsonToLineProtocol(jsonData):
             print jsonData
 
         try:
-            tags.append("comment={0}".format(jsonData.get("comment")))
+	    comment = jsonData.get("comment")
+	    comment = comment.encode("ascii", errors="replace").decode()
+            tags.append("comment={0}".format(comment))
+	    #print comment
 
         except KeyError as e:
             print e
@@ -54,6 +58,8 @@ def jsonToLineProtocol(jsonData):
 
         except UnicodeError as e:
             print e
+	    print comment
+	    print jsonData
 
         tagStr = ",".join(tags)
 
@@ -84,7 +90,7 @@ def jsonToLineProtocol(jsonData):
         fieldsStr = ",".join(fields)
 
         lineProtocolStr = " ".join([measurement,tagStr,fieldsStr])
-        print lineProtocolStr
+        #print lineProtocolStr
 
     #line = "packet,from={0},geohash={9} latitude={1},longitude={2},altitude={3},analog0={4},analog1={5},analog2={6},analog3={7},analog4={8}"
 
