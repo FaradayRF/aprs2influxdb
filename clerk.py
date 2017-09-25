@@ -75,7 +75,12 @@ def jsonToLineProtocol(jsonData):
             print e
             print jsonData
 
+
+
             try:
+                print jsonData['telemetry']
+                print jsonData['telemetry']['seq']
+                print jsonData.get('telemetry')
                 if jsonData["telemetry"]["seq"]:
                     fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
                     fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
@@ -94,7 +99,7 @@ def jsonToLineProtocol(jsonData):
 	timestamp = str(int(time.time()))
        # print tagStr
        # print fieldsStr
- 
+
 	return measurement + "," + tagStr + " " + fieldsStr
 
 
