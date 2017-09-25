@@ -86,9 +86,9 @@ def jsonToLineProtocol(jsonData):
                 fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
                 fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
-            except KeyError as e:
-                print e
-                print jsonData
+        except KeyError as e:
+            print e
+            print jsonData
 
         fieldsStr = ",".join(fields)
 
