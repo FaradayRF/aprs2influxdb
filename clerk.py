@@ -2,13 +2,12 @@ import aprslib
 import configparser
 import influxdb
 from influxdb import InfluxDBClient
-import Geohash
-import time
 import logging
 
 # Globals
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DrWatson")
+
 
 def jsonToLineProtocol(jsonData):
     # Converts aprslib JSON to influxdb line protocol
@@ -44,8 +43,8 @@ def jsonToLineProtocol(jsonData):
         try:
             tags.append("from={0}".format(jsonData.get("from")))
             tags.append("to={0}".format(jsonData.get("to")))
-	    #symbolTable = jsonData.get("symbol_table")
-	    #tags.append("symbolTable=\"{0}\"".format(symbolTable.encode("ascii", errors="replace")))
+            #symbolTable = jsonData.get("symbol_table")
+            #tags.append("symbolTable=\"{0}\"".format(symbolTable.encode("ascii", errors="replace")))
             #symbol = jsonData.get("symbol")
             #tags.append("symbol=\"{0}\"".format(symbol.encode("ascii", errors="replace")))
             tags.append("format={0}".format(jsonData.get("format")))
@@ -54,18 +53,18 @@ def jsonToLineProtocol(jsonData):
             logger.error(e)
             logger.error(jsonData)
 
-        try:
-	    rawComment = jsonData.get("comment")
-	    comment = rawComment.encode("ascii", errors="ignore")
-	    #tags.append("comment=\"{0}\"".format(comment))
-
-        except KeyError as e:
-            logger.error(e)
-            logger.error(jsonData)
-
-        except UnicodeError as e:
-            logger.error(e)
-            logger.error(jsonData)
+        # try:
+        #     rawComment = jsonData.get("comment")
+        #     comment = rawComment.encode("ascii", errors="ignore")
+        #     tags.append("comment=\"{0}\"".format(comment))
+        #
+        # except KeyError as e:
+        #     logger.error(e)
+        #     logger.error(jsonData)
+        #
+        # except UnicodeError as e:
+        #     logger.error(e)
+        #     logger.error(jsonData)
 
         tagStr = ",".join(tags)
 
@@ -73,7 +72,7 @@ def jsonToLineProtocol(jsonData):
             fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
             fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
             fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
-            fields.append("altitude={0}".format(jsonData.get("altitude",0)))
+            fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
             fields.append("speed={0}".format(jsonData.get("speed", 0)))
         except KeyError as e:
             logger.error(e)
@@ -96,7 +95,7 @@ def jsonToLineProtocol(jsonData):
 
         fieldsStr = ",".join(fields)
 
-	return measurement + "," + tagStr + " " + fieldsStr
+        return measurement + "," + tagStr + " " + fieldsStr
 
 
 def callback(packet):
@@ -107,7 +106,7 @@ def callback(packet):
 
     if line:
         logger.debug(line)
-    	try:
+        try:
             influxConn.write_points([line], protocol='line')
 
         except StandardError as e:
@@ -129,10 +128,11 @@ def connectInfluxDB():
     user = config['influx']['user']
     password = config['influx']['password']
     dbname = config['influx']['dbname']
-    dbuser = config['influx']['dbuser']
-    dbuser_password = config['influx']['dbuserpassword']
+    #dbuser = config['influx']['dbuser']
+    #dbuser_password = config['influx']['dbuserpassword']
 
     return InfluxDBClient(host, port, user, password, dbname)
+
 
 def main():
     # Start logger
@@ -143,6 +143,7 @@ def main():
 
     # Obtain raw APRS-IS packets and sent to callback when received
     AIS.consumer(callback, raw=True)
+
 
 if __name__ == "__main__":
     main()
