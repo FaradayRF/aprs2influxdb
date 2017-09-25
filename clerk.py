@@ -4,6 +4,7 @@ import influxdb
 from influxdb import InfluxDBClient
 import Geohash
 import time
+import logging.config
 
 
 def jsonToLineProtocol(jsonData):
@@ -102,7 +103,7 @@ def callback(packet):
     line = jsonToLineProtocol(packet)
 
     if line:
-        print line
+        logger.info(line)
     	try:
             influxConn.write_points([line], protocol='line')
 
@@ -129,6 +130,10 @@ def connectInfluxDB():
     return InfluxDBClient(host, port, user, password, dbname)
 
 def main():
+    # Start logger
+    logging.getLogger("DrWatson")
+    logger = faradayHelper.getLogger()
+
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
     AIS.connect()
