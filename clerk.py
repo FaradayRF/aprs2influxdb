@@ -3,6 +3,8 @@ import configparser
 import influxdb
 from influxdb import InfluxDBClient
 import Geohash
+import time
+
 
 def jsonToLineProtocol(jsonData):
     # Converts aprslib JSON to influxdb line protocol
@@ -38,8 +40,8 @@ def jsonToLineProtocol(jsonData):
         try:
             tags.append("from={0}".format(jsonData.get("from")))
             tags.append("to={0}".format(jsonData.get("to")))
-            tags.append("symbolTable={0}".format(jsonData.get("symbol_table")))
-            tags.append("symbol={0}".format(jsonData.get("symbol")))
+            #tags.append("symbolTable=\"{0}\"".format(jsonData.get("symbol_table")))
+            #tags.append("symbol=\"{0}\"".format(jsonData.get("symbol")))
             tags.append("format={0}".format(jsonData.get("format")))
 
         except KeyError as e:
@@ -47,9 +49,9 @@ def jsonToLineProtocol(jsonData):
             print jsonData
 
         try:
-	    comment = jsonData.get("comment")
-	    comment = comment.encode("ascii", errors="replace").decode()
-            tags.append("comment={0}".format(comment))
+	    rawComment = jsonData.get("comment")
+	    comment = rawComment.encode("ascii", errors="replace").decode()
+            #tags.append("comment={0}".format(comment))
 	    #print comment
 
         except KeyError as e:
@@ -64,11 +66,11 @@ def jsonToLineProtocol(jsonData):
         tagStr = ",".join(tags)
 
         try:
-            fields.append("latitude={0}".format(jsonData.get("latitude")))
-            fields.append("longitude={0}".format(jsonData.get("longitude")))
-            fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity")))
-            fields.append("altitude={0}".format(jsonData.get("altitude")))
-            fields.append("speed={0}".format(jsonData.get("speed")))
+            fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
+            fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
+            fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
+            fields.append("altitude={0}".format(jsonData.get("altitude",0)))
+            fields.append("speed={0}".format(jsonData.get("speed", 0)))
         except KeyError as e:
             print e
             print jsonData
@@ -89,7 +91,11 @@ def jsonToLineProtocol(jsonData):
 
         fieldsStr = ",".join(fields)
 
-        return " ".join([measurement,tagStr,fieldsStr])
+	timestamp = str(int(time.time()))
+       # print tagStr
+       # print fieldsStr
+ 
+	return measurement + "," + tagStr + " " + fieldsStr
 
 
 def callback(packet):
@@ -105,7 +111,7 @@ def callback(packet):
             influxConn.write_points([line],protocol='line')
 
         except StandardError as e:
-            pass
+            print e
 
         except influxdb.exceptions.InfluxDBClientError as e:
             print e
