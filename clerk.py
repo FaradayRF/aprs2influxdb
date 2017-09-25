@@ -57,7 +57,7 @@ def jsonToLineProtocol(jsonData):
         try:
 	    rawComment = jsonData.get("comment")
 	    comment = rawComment.encode("ascii", errors="ignore")
-	    tags.append("comment=\"{0}\"".format(comment.replace(" ", "\ ")))
+	    #tags.append("comment=\"{0}\"".format(comment))
 
         except KeyError as e:
             logger.error(e)
@@ -116,7 +116,7 @@ def callback(packet):
 
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
-            logger.error(jsonData)
+            #logger.error(jsonData)
 
 
 def connectInfluxDB():
