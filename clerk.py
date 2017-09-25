@@ -1,4 +1,3 @@
-import aprslib
 import configparser
 import influxdb
 from influxdb import InfluxDBClient
@@ -89,20 +88,8 @@ def jsonToLineProtocol(jsonData):
 
         fieldsStr = ",".join(fields)
 
-        lineProtocolStr = " ".join([measurement,tagStr,fieldsStr])
-        #print lineProtocolStr
+        return " ".join([measurement,tagStr,fieldsStr])
 
-    #line = "packet,from={0},geohash={9} latitude={1},longitude={2},altitude={3},analog0={4},analog1={5},analog2={6},analog3={7},analog4={8}"
-
-    # try:
-    #     a = line.format(jsonData["from"],jsonData["latitude"],jsonData["longitude"],jsonData["altitude"],jsonData["telemetry"]["vals"][0],jsonData["telemetry"]["vals"][1],jsonData["telemetry"]["vals"][2],jsonData["telemetry"]["vals"][3],jsonData["telemetry"]["vals"][4],str(geohashVal))
-    #     print a
-	# return a
-    # except StandardError as e:
-    #     pass
-
-    #except InfluxDB.ClientError as e:
-    #    print e
 
 def callback(packet):
     packet = aprslib.parse(packet)
@@ -110,11 +97,11 @@ def callback(packet):
     #print packet
     #slowwwwww
     influxConn = connectInfluxDB()
-    a = jsonToLineProtocol(packet)
-    if a:
-        print a
+    line = jsonToLineProtocol(packet)
+    if line:
+        print line
 	try:
-            influxConn.write_points([a],protocol='line')
+            influxConn.write_points([line],protocol='line')
 
         except StandardError as e:
             pass
