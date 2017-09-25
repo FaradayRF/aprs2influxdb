@@ -33,8 +33,8 @@ def jsonToLineProtocol(jsonData):
         # initialize variables
         tags = []
         fields = []
-	comment = r" "
 
+        # Set measurement to "packet"
         measurement = "packet"
 
         try:
@@ -51,8 +51,6 @@ def jsonToLineProtocol(jsonData):
         try:
 	    rawComment = jsonData.get("comment")
 	    comment = rawComment.encode("ascii", errors="replace").decode()
-            #tags.append("comment={0}".format(comment))
-	    #print comment
 
         except KeyError as e:
             print e
@@ -75,20 +73,18 @@ def jsonToLineProtocol(jsonData):
             print e
             print jsonData
 
-
-
-            try:
-                print jsonData['telemetry']
-                print jsonData['telemetry']['seq']
-                print jsonData.get('telemetry')
-                if jsonData["telemetry"]["seq"]:
-                    fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
-                    fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
-                    fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
-                    fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
-                    fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
-                    fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-                    fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
+        try:
+            print jsonData['telemetry']
+            print jsonData['telemetry']['seq']
+            print jsonData.get('telemetry')
+            if jsonData["telemetry"]["seq"]:
+                fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
+                fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
+                fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
+                fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
+                fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
+                fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
+                fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
             except KeyError as e:
                 print e
@@ -96,24 +92,19 @@ def jsonToLineProtocol(jsonData):
 
         fieldsStr = ",".join(fields)
 
-	timestamp = str(int(time.time()))
-       # print tagStr
-       # print fieldsStr
-
 	return measurement + "," + tagStr + " " + fieldsStr
 
 
 def callback(packet):
     packet = aprslib.parse(packet)
-#    if packet['to'] == 'GPSFDY':
-    #print packet
     #slowwwwww
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
+    
     if line:
         print line
 	try:
-            influxConn.write_points([line],protocol='line')
+        influxConn.write_points([line],protocol='line')
 
         except StandardError as e:
             print e
