@@ -52,6 +52,9 @@ def jsonToLineProtocol(jsonData):
             print e
             print jsonData
 
+        except UnicodeError as e:
+            print e
+
         tagStr = ",".join(tags)
 
         try:
