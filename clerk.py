@@ -103,14 +103,14 @@ def callback(packet):
 
     if line:
         print line
-	try:
-        influxConn.write_points([line], protocol='line')
+    	try:
+            influxConn.write_points([line], protocol='line')
 
-    except StandardError as e:
-        print e
+        except StandardError as e:
+            print e
 
-    except influxdb.exceptions.InfluxDBClientError as e:
-        print e
+        except influxdb.exceptions.InfluxDBClientError as e:
+            print e
 
 
 def connectInfluxDB():
