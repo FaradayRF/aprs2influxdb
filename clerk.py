@@ -57,13 +57,12 @@ def jsonToLineProtocol(jsonData):
 	    comment = rawComment.encode("ascii", errors="replace").decode()
 
         except KeyError as e:
-            print e
-            #print jsonData
+            logger.error(e)
+            logger.error(jsonData)
 
         except UnicodeError as e:
-            print e
-	    #print comment
-	    #print jsonData
+            logger.error(e)
+            logger.error(jsonData)
 
         tagStr = ",".join(tags)
 
@@ -74,13 +73,10 @@ def jsonToLineProtocol(jsonData):
             fields.append("altitude={0}".format(jsonData.get("altitude",0)))
             fields.append("speed={0}".format(jsonData.get("speed", 0)))
         except KeyError as e:
-            print e
-            #print jsonData
+            logger.error(e)
+            logger.error(jsonData)
 
         try:
-            #print jsonData['telemetry']
-            #print jsonData['telemetry']['seq']
-            #print jsonData.get('telemetry')
             if jsonData["telemetry"]["seq"]:
                 fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
                 fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
@@ -91,8 +87,8 @@ def jsonToLineProtocol(jsonData):
                 fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
         except KeyError as e:
-            print e
-            #print jsonData
+            logger.error(e)
+            logger.error(jsonData)
 
         fieldsStr = ",".join(fields)
 
@@ -101,7 +97,7 @@ def jsonToLineProtocol(jsonData):
 
 def callback(packet):
     packet = aprslib.parse(packet)
-    #slowwwwww
+    # Open a new connection every time, probably slow
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
 
@@ -111,10 +107,12 @@ def callback(packet):
             influxConn.write_points([line], protocol='line')
 
         except StandardError as e:
-            print e
+            logger.error(e)
+            logger.error(jsonData)
 
         except influxdb.exceptions.InfluxDBClientError as e:
-            print e
+            logger.error(e)
+            logger.error(jsonData)
 
 
 def connectInfluxDB():
@@ -135,7 +133,7 @@ def connectInfluxDB():
 def main():
     # Start logger
     #logging.getLogger("DrWatson")
-    #logger = logging.getLogger("DrWatson") 
+    #logger = logging.getLogger("DrWatson")
 
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
