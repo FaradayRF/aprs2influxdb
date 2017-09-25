@@ -1,3 +1,4 @@
+import aprslib
 import configparser
 import influxdb
 from influxdb import InfluxDBClient
