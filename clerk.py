@@ -100,7 +100,7 @@ def callback(packet):
     #slowwwwww
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
-    
+
     if line:
         print line
 	try:
