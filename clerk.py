@@ -4,8 +4,11 @@ import influxdb
 from influxdb import InfluxDBClient
 import Geohash
 import time
-import logging.config
+import logging
 
+# Globals
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("DrWatson")
 
 def jsonToLineProtocol(jsonData):
     # Converts aprslib JSON to influxdb line protocol
@@ -46,8 +49,8 @@ def jsonToLineProtocol(jsonData):
             tags.append("format={0}".format(jsonData.get("format")))
 
         except KeyError as e:
-            print e
-            print jsonData
+            logger.error(e)
+            logger.error(jsonData)
 
         try:
 	    rawComment = jsonData.get("comment")
@@ -55,12 +58,12 @@ def jsonToLineProtocol(jsonData):
 
         except KeyError as e:
             print e
-            print jsonData
+            #print jsonData
 
         except UnicodeError as e:
             print e
-	    print comment
-	    print jsonData
+	    #print comment
+	    #print jsonData
 
         tagStr = ",".join(tags)
 
@@ -72,12 +75,12 @@ def jsonToLineProtocol(jsonData):
             fields.append("speed={0}".format(jsonData.get("speed", 0)))
         except KeyError as e:
             print e
-            print jsonData
+            #print jsonData
 
         try:
-            print jsonData['telemetry']
-            print jsonData['telemetry']['seq']
-            print jsonData.get('telemetry')
+            #print jsonData['telemetry']
+            #print jsonData['telemetry']['seq']
+            #print jsonData.get('telemetry')
             if jsonData["telemetry"]["seq"]:
                 fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
                 fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
@@ -89,7 +92,7 @@ def jsonToLineProtocol(jsonData):
 
         except KeyError as e:
             print e
-            print jsonData
+            #print jsonData
 
         fieldsStr = ",".join(fields)
 
@@ -131,8 +134,8 @@ def connectInfluxDB():
 
 def main():
     # Start logger
-    logging.getLogger("DrWatson")
-    logger = faradayHelper.getLogger()
+    #logging.getLogger("DrWatson")
+    #logger = logging.getLogger("DrWatson") 
 
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
