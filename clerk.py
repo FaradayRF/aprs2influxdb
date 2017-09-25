@@ -87,8 +87,9 @@ def jsonToLineProtocol(jsonData):
                 fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
         except KeyError as e:
-            logger.error(e)
-            logger.error(jsonData)
+            # Expect many KeyErrors for stations not sending telemetry
+            logger.debug(e)
+            logger.debug(jsonData)
 
         fieldsStr = ",".join(fields)
 
@@ -102,7 +103,7 @@ def callback(packet):
     line = jsonToLineProtocol(packet)
 
     if line:
-        logger.info(line)
+        logger.debug(line)
     	try:
             influxConn.write_points([line], protocol='line')
 
