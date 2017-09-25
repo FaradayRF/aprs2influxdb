@@ -44,8 +44,10 @@ def jsonToLineProtocol(jsonData):
         try:
             tags.append("from={0}".format(jsonData.get("from")))
             tags.append("to={0}".format(jsonData.get("to")))
-            #tags.append("symbolTable=\"{0}\"".format(jsonData.get("symbol_table")))
-            #tags.append("symbol=\"{0}\"".format(jsonData.get("symbol")))
+	    #symbolTable = jsonData.get("symbol_table")
+	    #tags.append("symbolTable=\"{0}\"".format(symbolTable.encode("ascii", errors="replace")))
+            #symbol = jsonData.get("symbol")
+            #tags.append("symbol=\"{0}\"".format(symbol.encode("ascii", errors="replace")))
             tags.append("format={0}".format(jsonData.get("format")))
 
         except KeyError as e:
