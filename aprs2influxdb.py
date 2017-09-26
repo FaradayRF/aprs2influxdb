@@ -1,13 +1,50 @@
 import aprslib
-import configparser
+import ConfigParser
 import influxdb
 from influxdb import InfluxDBClient
 import logging
+import argparse
+import os
 
 # Globals
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("DrWatson")
+logger = logging.getLogger("aprs2influxdb")
 
+# Command line input
+parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
+parser.add_argument('--init-config', dest='init', action='store_true', help='Initialize configuration file')
+parser.add_argument('--host', help='Set InfluxDB host')
+parser.add_argument('--port', help='Set InfluxDB port')
+parser.add_argument('--user', help='Set InfluxDB user')
+parser.add_argument('--password', help='Set InfluxDB password')
+parser.add_argument('--dbname', help='Set InfluxDB database name')
+parser.add_argument('--dbuser', help='Set InfluxDB user')
+parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
+
+# Parse the arguments
+args = parser.parse_args()
+
+logger.info("woot")
+
+def getConfig():
+        """
+        Get configuration file
+        """
+        # Known paths where loggingConfig.ini can exist
+        relpath1 = os.path.join('etc', 'aprs2influxdb')
+
+        # Check all directories until first instance of loggingConfig.ini
+        for location in os.curdir, relpath1:
+            try:
+                config = ConfigParser.RawConfigParser()
+                result = config.read(os.path.join(location, "config.ini"))
+            except ConfigParser.NoSectionError:
+                pass
+
+            if result:
+                break
+
+        return config
 
 def jsonToLineProtocol(jsonData):
     # Converts aprslib JSON to influxdb line protocol
@@ -119,15 +156,12 @@ def callback(packet):
 
 
 def connectInfluxDB():
-
-    config = configparser.ConfigParser()
-    config.read('clerk.ini')
-
-    host = config['influx']['host']
-    port = config['influx']['port']
-    user = config['influx']['user']
-    password = config['influx']['password']
-    dbname = config['influx']['dbname']
+    configFile = getConfig()
+    host = configFile.get('influx','host')
+    port = configFile.get('influx','port')
+    user = configFile.get('influx','user')
+    password = configFile.get('influx','password')
+    dbname = configFile.get('influx','dbname')
     #dbuser = config['influx']['dbuser']
     #dbuser_password = config['influx']['dbuserpassword']
 
@@ -136,6 +170,7 @@ def connectInfluxDB():
 
 def main():
     # Start logger
+
 
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
