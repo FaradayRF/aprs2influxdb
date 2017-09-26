@@ -8,7 +8,7 @@ import os
 
 # Globals
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("DrWatson")
+logger = logging.getLogger("aprs2influxdb")
 
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
@@ -23,6 +23,8 @@ parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
 
 # Parse the arguments
 args = parser.parse_args()
+
+logger.info("woot")
 
 def getConfig():
         """
