@@ -3,11 +3,25 @@ import configparser
 import influxdb
 from influxdb import InfluxDBClient
 import logging
+import argparse
 
 # Globals
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DrWatson")
 
+# Command line input
+parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
+parser.add_argument('--init-config', dest='init', action='store_true', help='Initialize configuration file')
+parser.add_argument('--host', help='Set InfluxDB host')
+parser.add_argument('--port', help='Set InfluxDB port')
+parser.add_argument('--user', help='Set InfluxDB user')
+parser.add_argument('--password', help='Set InfluxDB password')
+parser.add_argument('--dbname', help='Set InfluxDB database name')
+parser.add_argument('--dbuser', help='Set InfluxDB user')
+parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
+
+# Parse the arguments
+args = parser.parse_args()
 
 def jsonToLineProtocol(jsonData):
     # Converts aprslib JSON to influxdb line protocol
