@@ -5,6 +5,7 @@ from influxdb import InfluxDBClient
 import logging
 import argparse
 import os
+import chardet
 
 # Globals
 logging.basicConfig(level=logging.INFO)
@@ -88,19 +89,6 @@ def jsonToLineProtocol(jsonData):
             logger.error(e)
             logger.error(jsonData)
 
-        # try:
-        #     rawComment = jsonData.get("comment")
-        #     comment = rawComment.encode("ascii", errors="ignore")
-        #     tags.append("comment=\"{0}\"".format(comment))
-        #
-        # except KeyError as e:
-        #     logger.error(e)
-        #     logger.error(jsonData)
-        #
-        # except UnicodeError as e:
-        #     logger.error(e)
-        #     logger.error(jsonData)
-
         tagStr = ",".join(tags)
 
         try:
@@ -128,6 +116,19 @@ def jsonToLineProtocol(jsonData):
             logger.debug(e)
             logger.debug(jsonData)
 
+        try:
+            comment = jsonData.get("comment").encode('ascii', 'ignore')
+
+            if comment:
+                logger.debug(comment)
+                fields.append("comment=\"{0}\"".format(comment.replace("\"","")))
+
+        except UnicodeError as e:
+            logger.error(e)
+
+        except TypeError as e:
+            logger.error(e)
+
         fieldsStr = ",".join(fields)
 
         return measurement + "," + tagStr + " " + fieldsStr
@@ -148,12 +149,10 @@ def callback(packet):
         except StandardError as e:
             logger.error(e)
             logger.error(packet)
-            logger.error(jsonData)
 
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
             logger.error(packet)
-            logger.error(jsonData)
 
 
 def connectInfluxDB():
