@@ -24,8 +24,6 @@ parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
 # Parse the arguments
 args = parser.parse_args()
 
-logger.info("woot")
-
 def getConfig():
         """
         Get configuration file
@@ -136,7 +134,13 @@ def jsonToLineProtocol(jsonData):
 
 
 def callback(packet):
-    packet = aprslib.parse(packet)
+    try:
+        #packet = aprslib.parse(packet)
+        logger.debug(packet)
+
+    except aprslib.ConnectionDrop as e:
+        logger.error(e)
+
     # Open a new connection every time, probably slow
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
@@ -169,15 +173,14 @@ def connectInfluxDB():
 
 
 def main():
-    # Start logger
-
-
     # Open APRS-IS connection
     AIS = aprslib.IS("KB1LQC")
     AIS.connect()
 
     # Obtain raw APRS-IS packets and sent to callback when received
-    AIS.consumer(callback, raw=True)
+    AIS.consumer(callback, immortal=True, raw=False)
+
+
 
 
 if __name__ == "__main__":
