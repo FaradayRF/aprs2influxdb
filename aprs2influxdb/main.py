@@ -134,12 +134,7 @@ def jsonToLineProtocol(jsonData):
 
 
 def callback(packet):
-    try:
-        #packet = aprslib.parse(packet)
-        logger.debug(packet)
-
-    except aprslib.ConnectionDrop as e:
-        logger.error(e)
+    logger.debug(packet)
 
     # Open a new connection every time, probably slow
     influxConn = connectInfluxDB()
@@ -152,11 +147,13 @@ def callback(packet):
 
         except StandardError as e:
             logger.error(e)
-            #logger.error(jsonData)
+            logger.error(packet)
+            logger.error(jsonData)
 
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
-            #logger.error(jsonData)
+            logger.error(packet)
+            logger.error(jsonData)
 
 
 def connectInfluxDB():
