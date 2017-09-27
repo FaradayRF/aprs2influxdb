@@ -5,7 +5,6 @@ from influxdb import InfluxDBClient
 import logging
 import argparse
 import os
-import chardet
 
 # Globals
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +23,7 @@ parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
 
 # Parse the arguments
 args = parser.parse_args()
+
 
 def getConfig():
         """
@@ -44,6 +44,7 @@ def getConfig():
                 break
 
         return config
+
 
 def jsonToLineProtocol(jsonData):
     # Converts aprslib JSON to influxdb line protocol
@@ -117,7 +118,7 @@ def jsonToLineProtocol(jsonData):
 
             if comment:
                 logger.debug(comment)
-                fields.append("comment=\"{0}\"".format(comment.replace("\"","")))
+                fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
 
         except UnicodeError as e:
             logger.error(e)
@@ -153,11 +154,11 @@ def callback(packet):
 
 def connectInfluxDB():
     configFile = getConfig()
-    host = configFile.get('influx','host')
-    port = configFile.get('influx','port')
-    user = configFile.get('influx','user')
-    password = configFile.get('influx','password')
-    dbname = configFile.get('influx','dbname')
+    host = configFile.get('influx', 'host')
+    port = configFile.get('influx', 'port')
+    user = configFile.get('influx', 'user')
+    password = configFile.get('influx', 'password')
+    dbname = configFile.get('influx', 'dbname')
     #dbuser = config['influx']['dbuser']
     #dbuser_password = config['influx']['dbuserpassword']
 
@@ -171,8 +172,6 @@ def main():
 
     # Obtain raw APRS-IS packets and sent to callback when received
     AIS.consumer(callback, immortal=True, raw=False)
-
-
 
 
 if __name__ == "__main__":
