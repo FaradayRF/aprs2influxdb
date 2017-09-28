@@ -5,6 +5,7 @@ from influxdb import InfluxDBClient
 import logging
 import argparse
 import os
+import sys
 
 # Globals
 logging.basicConfig(level=logging.INFO)
@@ -30,13 +31,16 @@ def getConfig():
         Get configuration file
         """
         # Known paths where loggingConfig.ini can exist
-        relpath1 = os.path.join('etc', 'aprs2influxdb')
+        # relpath1 = os.path.join('etc', 'aprs2influxdb')
+        installPath = os.path.join(sys.prefix,"etc", "aprs2influxdb", "config.ini")
+        localPath = os.path.join(os.curdir, "config.ini")
+
 
         # Check all directories until first instance of loggingConfig.ini
-        for location in os.curdir, relpath1:
+        for location in localPath, installPath:
             try:
                 config = ConfigParser.RawConfigParser()
-                result = config.read(os.path.join(location, "config.ini"))
+                result = config.read(location)
             except ConfigParser.NoSectionError:
                 pass
 
@@ -134,7 +138,7 @@ def jsonToLineProtocol(jsonData):
 def callback(packet):
     logger.debug(packet)
 
-    # Open a new connection every time, probably slow
+    # Open a new connection every time, probably SLOWWWW
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
 
