@@ -1,4 +1,5 @@
 from distutils.core import setup
+from pkg_resources import Requirement, resource_filename
 
 setup(
     name='APRS2InfluxDB',
@@ -24,4 +25,8 @@ setup(
         "six>=1.11.0",
         "urllib3>=1.22",
     ],
+    entry_points={
+        'console_scripts':
+            ['aprs2influxdb = aprs2influxdb.main:main']
+    }
 )
