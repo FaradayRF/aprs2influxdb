@@ -1,8 +1,7 @@
 from distutils.core import setup
-from pkg_resources import Requirement, resource_filename
 
 setup(
-    name='APRS2InfluxDB',
+    name='aprs2influxdb',
     version='0.1.0',
     author='Bryce Salmi',
     author_email='Bryce@FaradayRF.com',
@@ -28,5 +27,7 @@ setup(
     entry_points={
         'console_scripts':
             ['aprs2influxdb = aprs2influxdb.main:main']
-    }
+    },
+    include_package_data=True,
+    data_files=[('etc/aprs2influxdb', ['config.ini'])]
 )
