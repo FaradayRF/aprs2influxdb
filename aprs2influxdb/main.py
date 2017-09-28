@@ -31,7 +31,6 @@ def getConfig():
         Get configuration file
         """
         # Known paths where loggingConfig.ini can exist
-        # relpath1 = os.path.join('etc', 'aprs2influxdb')
         installPath = os.path.join(sys.prefix,"etc", "aprs2influxdb", "config.ini")
         localPath = os.path.join(os.curdir, "config.ini")
 
