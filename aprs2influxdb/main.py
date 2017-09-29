@@ -6,6 +6,8 @@ import logging
 import argparse
 import os
 import sys
+import threading
+import time
 
 # Globals
 logging.basicConfig(level=logging.INFO)
@@ -137,6 +139,7 @@ def jsonToLineProtocol(jsonData):
 def callback(packet):
     logger.debug(packet)
 
+
     # Open a new connection every time, probably SLOWWWW
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
@@ -167,14 +170,47 @@ def connectInfluxDB():
 
     return InfluxDBClient(host, port, user, password, dbname)
 
+def consumer(conn):
+    logger.debug("starting consumer thread")
+    # Obtain raw APRS-IS packets and sent to callback when received
+    conn.consumer(callback, immortal=True, raw=False)
+
+def heartbeat(conn, callsign, interval):
+    logger.info("Starting heartbeat thread")
+    while True:
+        # Create timestamp
+        timestamp = int(time.time())
+
+        # Create APRS status message
+        status = "{0}>APRS,TCPIP*:>aprs2influxdb heartbeat {1}"
+        conn.sendall(status.format(callsign, timestamp))
+        logger.debug("Sent heartbeat")
+
+        # Sleep for specified time
+        time.sleep(interval*60)  # Sent every interval minutes
 
 def main():
+
+    # Obtain APRS-IS configuration
+    configFile = getConfig()
+    aprsCallsign = configFile.get('aprsis', 'callsign').upper()
+    aprsPort = configFile.get('aprsis', 'port')
+    passcode = aprslib.passcode(aprsCallsign)
+    aprsInterval = configFile.get('aprsis', 'interval')
+
     # Open APRS-IS connection
-    AIS = aprslib.IS("KB1LQC")
+    AIS = aprslib.IS(aprsCallsign, passwd=passcode, port=aprsPort)
     AIS.connect()
 
-    # Obtain raw APRS-IS packets and sent to callback when received
-    AIS.consumer(callback, immortal=True, raw=False)
+    # Create heartbeat
+    t1 = threading.Thread(target=heartbeat, args=(AIS, aprsCallsign, aprsInterval))
+
+    # Create consumer
+    t2 = threading.Thread(target=consumer, args=(AIS,))
+
+    # Start threads
+    t1.start()
+    t2.start()
 
 
 if __name__ == "__main__":
