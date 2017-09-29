@@ -176,7 +176,7 @@ def consumer(conn):
     conn.consumer(callback, immortal=True, raw=False)
 
 def heartbeat(conn, callsign, interval):
-    logger.info("Starting heartbeat thread")
+    logger.debug("Starting heartbeat thread")
     while True:
         # Create timestamp
         timestamp = int(time.time())
@@ -187,6 +187,7 @@ def heartbeat(conn, callsign, interval):
         logger.debug("Sent heartbeat")
 
         # Sleep for specified time
+        logger.info(interval)
         time.sleep(interval*60)  # Sent every interval minutes
 
 def main():
@@ -196,7 +197,7 @@ def main():
     aprsCallsign = configFile.get('aprsis', 'callsign').upper()
     aprsPort = configFile.get('aprsis', 'port')
     passcode = aprslib.passcode(aprsCallsign)
-    aprsInterval = configFile.get('aprsis', 'interval')
+    aprsInterval = configFile.getint('aprsis', 'interval')
 
     # Open APRS-IS connection
     AIS = aprslib.IS(aprsCallsign, passwd=passcode, port=aprsPort)
