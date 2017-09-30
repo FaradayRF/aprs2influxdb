@@ -27,6 +27,16 @@ parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
 # Parse the arguments
 args = parser.parse_args()
 
+def editConfig(config, args):
+    #Use command line values to change configuration
+    logger.info(args.dbname)
+
+    if args.dbname:
+        config[0].set('influx', 'dbname', args.dbname)
+
+    with open(config[1], 'wb') as configfile:
+        config[0].write(configfile)
+
 
 def getConfig():
         """
@@ -48,7 +58,7 @@ def getConfig():
             if result:
                 break
 
-        return config
+        return [config, location]
 
 
 def jsonToLineProtocol(jsonData):
@@ -159,7 +169,8 @@ def callback(packet):
 
 
 def connectInfluxDB():
-    configFile = getConfig()
+    config = getConfig()
+    configFile = config[0]
     host = configFile.get('influx', 'host')
     port = configFile.get('influx', 'port')
     user = configFile.get('influx', 'user')
@@ -192,12 +203,17 @@ def heartbeat(conn, callsign, interval):
 
 def main():
 
+    # Open up configuration file
+    config = getConfig()
+
+    # Edit configuration with user input
+    editConfig(config, args)
+
     # Obtain APRS-IS configuration
-    configFile = getConfig()
-    aprsCallsign = configFile.get('aprsis', 'callsign').upper()
-    aprsPort = configFile.get('aprsis', 'port')
+    aprsCallsign = config[0].get('aprsis', 'callsign').upper()
+    aprsPort = config[0].get('aprsis', 'port')
     passcode = aprslib.passcode(aprsCallsign)
-    aprsInterval = configFile.getint('aprsis', 'interval')
+    aprsInterval = config[0].getint('aprsis', 'interval')
 
     # Open APRS-IS connection
     AIS = aprslib.IS(aprsCallsign, passwd=passcode, port=aprsPort)
