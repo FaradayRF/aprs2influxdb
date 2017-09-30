@@ -8,6 +8,7 @@ import os
 import sys
 import threading
 import time
+import shutil
 
 # Globals
 logging.basicConfig(level=logging.INFO)
@@ -15,23 +16,20 @@ logger = logging.getLogger("aprs2influxdb")
 
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
-parser.add_argument('--init-config', dest='init', action='store_true', help='Initialize configuration file')
-parser.add_argument('--dbhost', help='Set InfluxDB host')
-parser.add_argument('--dbport', help='Set InfluxDB port')
-parser.add_argument('--dbuser', help='Set InfluxDB user')
-parser.add_argument('--dbpassword', help='Set InfluxDB password')
-parser.add_argument('--dbname', help='Set InfluxDB database name')
-parser.add_argument('--callsign', help='Set APRS-IS login callsign')
-parser.add_argument('--port', help='Set APRS-IS port')
-parser.add_argument('--interval', help='Set APRS-IS heartbeat interval')
+parser.add_argument('--dbhost', help='Set InfluxDB host', default="localhost")
+parser.add_argument('--dbport', help='Set InfluxDB port', default="8086")
+parser.add_argument('--dbuser', help='Set InfluxDB user', default="root")
+parser.add_argument('--dbpassword', help='Set InfluxDB password', default="root")
+parser.add_argument('--dbname', help='Set InfluxDB database name', default="mydb")
+parser.add_argument('--callsign', help='Set APRS-IS login callsign', default="nocall")
+parser.add_argument('--port', help='Set APRS-IS port', default="10152")
+parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minutes', default="15")
 
 # Parse the arguments
 args = parser.parse_args()
 
 def editConfig(config, args):
     #Use command line values to change configuration
-    logger.info(args.dbname)
-
     if args.dbhost:
         config[0].set('influx', 'dbhost', args.dbhost)
     if args.dbport:
