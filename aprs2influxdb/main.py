@@ -8,7 +8,6 @@ import os
 import sys
 import threading
 import time
-import shutil
 
 # Globals
 logging.basicConfig(level=logging.INFO)
@@ -228,7 +227,17 @@ def main():
 
     # Open APRS-IS connection
     AIS = aprslib.IS(aprsCallsign, passwd=passcode, port=aprsPort)
-    AIS.connect()
+    try:
+        AIS.connect()
+
+    except aprslib.exceptions.LoginError as e:
+        logger.error(e)
+        logger.info("APRS Login Callsign: {0} Port: {1}".format(aprsCallsign,aprsPort))
+        sys.exit(1)
+
+    except aprslib.exceptions.ConnectionError as e:
+        logger.error(e)
+        sys.exit(1)
 
     # Create heartbeat
     t1 = threading.Thread(target=heartbeat, args=(AIS, aprsCallsign, aprsInterval))
