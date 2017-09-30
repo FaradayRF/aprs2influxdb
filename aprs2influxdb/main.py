@@ -208,7 +208,6 @@ def heartbeat(conn, callsign, interval):
         logger.debug("Sent heartbeat")
 
         # Sleep for specified time
-        logger.info(interval)
         time.sleep(interval*60)  # Sent every interval minutes
 
 def main():
