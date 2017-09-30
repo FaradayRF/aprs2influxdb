@@ -16,13 +16,14 @@ logger = logging.getLogger("aprs2influxdb")
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
 parser.add_argument('--init-config', dest='init', action='store_true', help='Initialize configuration file')
-parser.add_argument('--host', help='Set InfluxDB host')
-parser.add_argument('--port', help='Set InfluxDB port')
-parser.add_argument('--user', help='Set InfluxDB user')
-parser.add_argument('--password', help='Set InfluxDB password')
-parser.add_argument('--dbname', help='Set InfluxDB database name')
+parser.add_argument('--dbhost', help='Set InfluxDB host')
+parser.add_argument('--dbport', help='Set InfluxDB port')
 parser.add_argument('--dbuser', help='Set InfluxDB user')
-parser.add_argument('--dbuserpassword', help='Set InfluxDB user password')
+parser.add_argument('--dbpassword', help='Set InfluxDB password')
+parser.add_argument('--dbname', help='Set InfluxDB database name')
+parser.add_argument('--callsign', help='Set APRS-IS login callsign')
+parser.add_argument('--port', help='Set APRS-IS port')
+parser.add_argument('--interval', help='Set APRS-IS heartbeat interval')
 
 # Parse the arguments
 args = parser.parse_args()
@@ -31,8 +32,22 @@ def editConfig(config, args):
     #Use command line values to change configuration
     logger.info(args.dbname)
 
+    if args.dbhost:
+        config[0].set('influx', 'dbhost', args.dbhost)
+    if args.dbport:
+        config[0].set('influx', 'dbport', args.dbport)
+    if args.dbuser:
+        config[0].set('influx', 'dbuser', args.dbuser)
+    if args.dbpassword:
+        config[0].set('influx', 'dbpassword', args.dbpassword)
     if args.dbname:
         config[0].set('influx', 'dbname', args.dbname)
+    if args.callsign:
+        config[0].set('aprsis', 'callsign', args.callsign)
+    if args.port:
+        config[0].set('aprsis', 'port', args.port)
+    if args.interval:
+        config[0].set('aprsis', 'interval', args.interval)
 
     with open(config[1], 'wb') as configfile:
         config[0].write(configfile)
@@ -171,13 +186,11 @@ def callback(packet):
 def connectInfluxDB():
     config = getConfig()
     configFile = config[0]
-    host = configFile.get('influx', 'host')
-    port = configFile.get('influx', 'port')
-    user = configFile.get('influx', 'user')
-    password = configFile.get('influx', 'password')
+    host = configFile.get('influx', 'dbhost')
+    port = configFile.get('influx', 'dbport')
+    user = configFile.get('influx', 'dbuser')
+    password = configFile.get('influx', 'dbpassword')
     dbname = configFile.get('influx', 'dbname')
-    #dbuser = config['influx']['dbuser']
-    #dbuser_password = config['influx']['dbuserpassword']
 
     return InfluxDBClient(host, port, user, password, dbname)
 
