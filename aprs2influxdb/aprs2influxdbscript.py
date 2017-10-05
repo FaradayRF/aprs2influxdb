@@ -55,7 +55,7 @@ def getConfig():
         logger.info(location)
         return [config, location]
 
-def editConfig(config, args):
+def editConfig(args):
     """Edits the configuration file based on command line arguments
 
     keyword arguments:
