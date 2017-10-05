@@ -87,7 +87,8 @@ def jsonToLineProtocol(jsonData):
     """Converts JSON APRS-IS packet to influxdb line protocol
 
     Takes in a JSON packet from aprslib (raw=false) and parses it into an
-    influxdb line protocol compliant string to insert into database
+    influxdb line protocol compliant string to insert into database. Returns
+    a valid line protocol string ready to be inserted into the database.
 
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
@@ -114,6 +115,7 @@ def jsonToLineProtocol(jsonData):
     # field = analog5
     # field = digital
 
+    # Parse uncompressed format packets
     if jsonData["format"] == "uncompressed":
         # initialize variables
         tags = []
