@@ -206,7 +206,6 @@ def callback(packet):
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
             logger.error(packet)
-            sys.exit(1)
 
 
 def connectInfluxDB():
