@@ -27,36 +27,6 @@ parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minute
 # Parse the arguments
 args = parser.parse_args()
 
-
-def editConfig(config, args):
-    """Edits the configuration file based on command line arguments
-
-    keyword arguments:
-    config -- configuration file descriptor
-    args -- argparse arguments
-    """
-    #Use command line values to change configuration
-    if args.dbhost:
-        config[0].set('influx', 'dbhost', args.dbhost)
-    if args.dbport:
-        config[0].set('influx', 'dbport', args.dbport)
-    if args.dbuser:
-        config[0].set('influx', 'dbuser', args.dbuser)
-    if args.dbpassword:
-        config[0].set('influx', 'dbpassword', args.dbpassword)
-    if args.dbname:
-        config[0].set('influx', 'dbname', args.dbname)
-    if args.callsign:
-        config[0].set('aprsis', 'callsign', args.callsign)
-    if args.port:
-        config[0].set('aprsis', 'port', args.port)
-    if args.interval:
-        config[0].set('aprsis', 'interval', args.interval)
-
-    with open(config[1], 'wb') as configfile:
-        config[0].write(configfile)
-
-
 def getConfig():
         """Open configuration file and return a list of config database
 
@@ -84,6 +54,37 @@ def getConfig():
 
         logger.info(location)
         return [config, location]
+
+def editConfig(config, args):
+    """Edits the configuration file based on command line arguments
+
+    keyword arguments:
+    config -- configuration file descriptor
+    args -- argparse arguments
+    """
+
+    config = getConfig()
+
+    #Use command line values to change configuration
+    if args.dbhost:
+        config[0].set('influx', 'dbhost', args.dbhost)
+    if args.dbport:
+        config[0].set('influx', 'dbport', args.dbport)
+    if args.dbuser:
+        config[0].set('influx', 'dbuser', args.dbuser)
+    if args.dbpassword:
+        config[0].set('influx', 'dbpassword', args.dbpassword)
+    if args.dbname:
+        config[0].set('influx', 'dbname', args.dbname)
+    if args.callsign:
+        config[0].set('aprsis', 'callsign', args.callsign)
+    if args.port:
+        config[0].set('aprsis', 'port', args.port)
+    if args.interval:
+        config[0].set('aprsis', 'interval', args.interval)
+
+    with open(config[1], 'wb') as configfile:
+        config[0].write(configfile)
 
 
 def jsonToLineProtocol(jsonData):
@@ -266,7 +267,7 @@ def main():
     config = getConfig()
 
     # Edit configuration with user input
-    editConfig(config, args)
+    editConfig(args)
 
     # Obtain APRS-IS configuration
     aprsCallsign = config[0].get('aprsis', 'callsign').upper()
