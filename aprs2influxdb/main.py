@@ -29,6 +29,12 @@ args = parser.parse_args()
 
 
 def editConfig(config, args):
+    """Edits the configuration file based on command line arguments
+
+    keyword arguments:
+    config -- configuration file descriptor
+    args -- argparse arguments
+    """
     #Use command line values to change configuration
     if args.dbhost:
         config[0].set('influx', 'dbhost', args.dbhost)
@@ -52,8 +58,12 @@ def editConfig(config, args):
 
 
 def getConfig():
-        """
-        Get configuration file
+        """Open configuration file and return a list of config database
+
+        Searches the current directory as well as Python specific install
+        location such as /etc/<installPath> or C:/python27/<installPath>.
+        Returns a list of config file desciptor as well as the path it was found
+        at so other operations can use it to open the file.
         """
         # Known paths where loggingConfig.ini can exist
         installPath = os.path.join(sys.prefix, "etc", "aprs2influxdb", "config.ini")
@@ -74,6 +84,14 @@ def getConfig():
 
 
 def jsonToLineProtocol(jsonData):
+    """Converts JSON APRS-IS packet to influxdb line protocol
+
+    Takes in a JSON packet from aprslib (raw=false) and parses it into an
+    influxdb line protocol compliant string to insert into database
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
     # Converts aprslib JSON to influxdb line protocol
     # Schema
     # measurement = packet
@@ -159,6 +177,11 @@ def jsonToLineProtocol(jsonData):
 
 
 def callback(packet):
+    """aprslib callback for every packet received from APRS-IS connection
+
+    keyword arguments:
+    packet -- APRS-IS packet from aprslib connection
+    """
     logger.debug(packet)
 
     # Open a new connection every time, probably SLOWWWW
@@ -180,6 +203,7 @@ def callback(packet):
 
 
 def connectInfluxDB():
+    """Connect to influxdb database with configuration values"""
     config = getConfig()
     configFile = config[0]
     host = configFile.get('influx', 'dbhost')
@@ -192,12 +216,24 @@ def connectInfluxDB():
 
 
 def consumer(conn):
+    """Start consumer function for thread
+
+    keyword arguments:
+    conn -- APRS-IS connection from aprslib
+    """
     logger.debug("starting consumer thread")
     # Obtain raw APRS-IS packets and sent to callback when received
     conn.consumer(callback, immortal=True, raw=False)
 
 
 def heartbeat(conn, callsign, interval):
+    """Send out an APRS status message to keep connection alive
+
+    keyword arguments:
+    conn -- APRS-IS connction from aprslib
+    callsign -- Callsign of status message
+    interval -- Minutes betwee status messages
+    """
     logger.debug("Starting heartbeat thread")
     while True:
         # Create timestamp
@@ -213,7 +249,13 @@ def heartbeat(conn, callsign, interval):
 
 
 def main():
+    """Main function of aprs2influxdb
 
+    Reads in configuration values and starts connection to APRS-IS with aprslib.
+    Then two threads are started, one to monitor for APRS-IS packets and
+    another to periodically send status packets to APRS-IS in order to keep
+    the connection alive.
+    """
     # Open up configuration file
     config = getConfig()
 
