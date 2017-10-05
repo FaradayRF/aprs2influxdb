@@ -55,5 +55,5 @@ See also the list of [contributors](https://github.com/FaradayRF/aprs2influxdb/c
 
 ## Acknowledgments
 
-* @PhirePhly for answering my APRS questions!
-* @hessu for also answering my APRS and aprsc questions as well as providing the awesome [aprs.fi](https://www.aprs.fi) website.
+* [@PhirePhly](https://github.com/PhirePhly) for answering my APRS questions!
+* [@hessu](https://github.com/hessu) for also answering my APRS and aprsc questions as well as providing the awesome [aprs.fi](https://www.aprs.fi) website.
