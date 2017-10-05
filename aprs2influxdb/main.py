@@ -27,6 +27,7 @@ parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minute
 # Parse the arguments
 args = parser.parse_args()
 
+
 def editConfig(config, args):
     #Use command line values to change configuration
     if args.dbhost:
@@ -55,9 +56,8 @@ def getConfig():
         Get configuration file
         """
         # Known paths where loggingConfig.ini can exist
-        installPath = os.path.join(sys.prefix,"etc", "aprs2influxdb", "config.ini")
+        installPath = os.path.join(sys.prefix, "etc", "aprs2influxdb", "config.ini")
         localPath = os.path.join(os.curdir, "config.ini")
-
 
         # Check all directories until first instance of loggingConfig.ini
         for location in localPath, installPath:
@@ -161,7 +161,6 @@ def jsonToLineProtocol(jsonData):
 def callback(packet):
     logger.debug(packet)
 
-
     # Open a new connection every time, probably SLOWWWW
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
@@ -191,10 +190,12 @@ def connectInfluxDB():
 
     return InfluxDBClient(host, port, user, password, dbname)
 
+
 def consumer(conn):
     logger.debug("starting consumer thread")
     # Obtain raw APRS-IS packets and sent to callback when received
     conn.consumer(callback, immortal=True, raw=False)
+
 
 def heartbeat(conn, callsign, interval):
     logger.debug("Starting heartbeat thread")
@@ -208,7 +209,8 @@ def heartbeat(conn, callsign, interval):
         logger.debug("Sent heartbeat")
 
         # Sleep for specified time
-        time.sleep(interval*60)  # Sent every interval minutes
+        time.sleep(interval * 60)  # Sent every interval minutes
+
 
 def main():
 
@@ -231,7 +233,7 @@ def main():
 
     except aprslib.exceptions.LoginError as e:
         logger.error(e)
-        logger.info("APRS Login Callsign: {0} Port: {1}".format(aprsCallsign,aprsPort))
+        logger.info("APRS Login Callsign: {0} Port: {1}".format(aprsCallsign, aprsPort))
         sys.exit(1)
 
     except aprslib.exceptions.ConnectionError as e:
