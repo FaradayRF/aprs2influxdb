@@ -27,6 +27,7 @@ parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minute
 # Parse the arguments
 args = parser.parse_args()
 
+
 def getConfig():
         """Open configuration file and return a list of config database
 
@@ -52,6 +53,7 @@ def getConfig():
                 break
 
         return [config, location]
+
 
 def editConfig(args):
     """Edits the configuration file based on command line arguments
