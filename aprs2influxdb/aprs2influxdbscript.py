@@ -39,7 +39,6 @@ def getConfig():
         installPath = os.path.join(sys.prefix, "etc", "aprs2influxdb", "config.ini")
         installPath2 = os.path.join(os.path.expanduser("~"), ".local", "etc", "aprs2influxdb", "config.ini")
         localPath = os.path.join(os.curdir, "config.ini")
-        logger.info(installPath2)
 
         # Check all directories until first instance of loggingConfig.ini
         for location in localPath, installPath, installPath2:
@@ -52,7 +51,6 @@ def getConfig():
             if result:
                 break
 
-        logger.info(location)
         return [config, location]
 
 def editConfig(args):
