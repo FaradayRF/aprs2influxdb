@@ -26,7 +26,7 @@ setup(
     ],
     entry_points={
         'console_scripts':
-            ['aprs2influxdb = aprs2influxdb.main:main']
+            ['aprs2influxdb = aprs2influxdb:aprs2influxdbscript.main']
     },
     include_package_data=True,
     data_files=[('etc/aprs2influxdb', ['config.ini'])]
