@@ -8,8 +8,8 @@ setup(
     packages=['aprs2influxdb'],
     url='https://github.com/FaradayRF/aprs2influxdb',
     license='GPLv3',
-    description='Connects to APRS-IS and saves packets to InfluxDB',
-    long_description=open('README.txt').read(),
+    description='Interfaces ham radio APRS-IS servers and saves packet data into an influxdb database',
+    long_description=open('README.md').read(),
     install_requires=[
         "aprslib>=0.6.46",
         "certifi>=2017.7.27.1",
