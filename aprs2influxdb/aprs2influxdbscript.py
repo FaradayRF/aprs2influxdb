@@ -67,10 +67,12 @@ def getConfig():
         """
         # Known paths where loggingConfig.ini can exist
         installPath = os.path.join(sys.prefix, "etc", "aprs2influxdb", "config.ini")
+        installPath2 = os.path.join("~", ".local", "etc", "aprs2influxdb", "config.ini")
         localPath = os.path.join(os.curdir, "config.ini")
+        logger.info(installPath2)
 
         # Check all directories until first instance of loggingConfig.ini
-        for location in localPath, installPath:
+        for location in localPath, installPath, installPath2:
             try:
                 config = ConfigParser.RawConfigParser()
                 result = config.read(location)
@@ -80,6 +82,7 @@ def getConfig():
             if result:
                 break
 
+        logger.info(location)
         return [config, location]
 
 
