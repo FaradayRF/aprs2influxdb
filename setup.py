@@ -26,6 +26,6 @@ setup(
     ],
     entry_points={
         'console_scripts':
-            ['aprs2influxdb = aprs2influxdb:aprs2influxdbscript.main']
+            ['aprs2influxdb = aprs2influxdb.__main__:main']
     }
 )
