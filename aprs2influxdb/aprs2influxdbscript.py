@@ -199,7 +199,10 @@ def main():
     the connection alive.
     """
 
-    logger.info(args)
+    # Start login for APRS-IS
+    logger.info("Logging into APRS-IS as {0} on port {1}".format(args.callsign, args.port))
+    if args.callsign == "nocall":
+        logger.warning("APRS-IS ignores the callsign \"nocall\"!")
 
     # Open APRS-IS connection
     passcode = aprslib.passcode(args.callsign)
