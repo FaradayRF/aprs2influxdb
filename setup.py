@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='aprs2influxdb',
-    version='0.1.0',
+    version='0.1.1',
     author='Bryce Salmi',
     author_email='Bryce@FaradayRF.com',
     packages=['aprs2influxdb'],
