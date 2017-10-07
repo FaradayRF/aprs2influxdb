@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='aprs2influxdb',
-    version='0.1.0',
+    version='0.1.1',
     author='Bryce Salmi',
     author_email='Bryce@FaradayRF.com',
     packages=['aprs2influxdb'],
@@ -26,8 +26,6 @@ setup(
     ],
     entry_points={
         'console_scripts':
-            ['aprs2influxdb = aprs2influxdb:aprs2influxdbscript.main']
-    },
-    include_package_data=True,
-    data_files=[('etc/aprs2influxdb', ['config.ini'])]
+            ['aprs2influxdb = aprs2influxdb.__main__:main']
+    }
 )

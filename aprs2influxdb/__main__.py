@@ -1,10 +1,8 @@
 import aprslib
-import ConfigParser
 import influxdb
 from influxdb import InfluxDBClient
 import logging
 import argparse
-import os
 import sys
 import threading
 import time
@@ -26,65 +24,6 @@ parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minute
 
 # Parse the arguments
 args = parser.parse_args()
-
-
-def getConfig():
-        """Open configuration file and return a list of config database
-
-        Searches the current directory as well as Python specific install
-        location such as /etc/<installPath> or C:/python27/<installPath>.
-        Returns a list of config file desciptor as well as the path it was found
-        at so other operations can use it to open the file.
-        """
-        # Known paths where loggingConfig.ini can exist
-        installPath = os.path.join(sys.prefix, "etc", "aprs2influxdb", "config.ini")
-        installPath2 = os.path.join(os.path.expanduser("~"), ".local", "etc", "aprs2influxdb", "config.ini")
-        localPath = os.path.join(os.curdir, "config.ini")
-
-        # Check all directories until first instance of loggingConfig.ini
-        for location in localPath, installPath, installPath2:
-            try:
-                config = ConfigParser.RawConfigParser()
-                result = config.read(location)
-            except ConfigParser.NoSectionError:
-                pass
-
-            if result:
-                break
-
-        return [config, location]
-
-
-def editConfig(args):
-    """Edits the configuration file based on command line arguments
-
-    keyword arguments:
-    config -- configuration file descriptor
-    args -- argparse arguments
-    """
-
-    config = getConfig()
-
-    #Use command line values to change configuration
-    if args.dbhost:
-        config[0].set('influx', 'dbhost', args.dbhost)
-    if args.dbport:
-        config[0].set('influx', 'dbport', args.dbport)
-    if args.dbuser:
-        config[0].set('influx', 'dbuser', args.dbuser)
-    if args.dbpassword:
-        config[0].set('influx', 'dbpassword', args.dbpassword)
-    if args.dbname:
-        config[0].set('influx', 'dbname', args.dbname)
-    if args.callsign:
-        config[0].set('aprsis', 'callsign', args.callsign)
-    if args.port:
-        config[0].set('aprsis', 'port', args.port)
-    if args.interval:
-        config[0].set('aprsis', 'interval', args.interval)
-
-    with open(config[1], 'wb') as configfile:
-        config[0].write(configfile)
 
 
 def jsonToLineProtocol(jsonData):
@@ -210,15 +149,12 @@ def callback(packet):
 
 def connectInfluxDB():
     """Connect to influxdb database with configuration values"""
-    config = getConfig()
-    configFile = config[0]
-    host = configFile.get('influx', 'dbhost')
-    port = configFile.get('influx', 'dbport')
-    user = configFile.get('influx', 'dbuser')
-    password = configFile.get('influx', 'dbpassword')
-    dbname = configFile.get('influx', 'dbname')
 
-    return InfluxDBClient(host, port, user, password, dbname)
+    return InfluxDBClient(args.dbhost,
+                          args.dbport,
+                          args.dbuser,
+                          args.dbpassword,
+                          args.dbname)
 
 
 def consumer(conn):
@@ -251,7 +187,7 @@ def heartbeat(conn, callsign, interval):
         logger.debug("Sent heartbeat")
 
         # Sleep for specified time
-        time.sleep(interval * 60)  # Sent every interval minutes
+        time.sleep(float(interval) * 60)  # Sent every interval minutes
 
 
 def main():
@@ -262,26 +198,23 @@ def main():
     another to periodically send status packets to APRS-IS in order to keep
     the connection alive.
     """
-    # Open up configuration file
-    config = getConfig()
 
-    # Edit configuration with user input
-    editConfig(args)
-
-    # Obtain APRS-IS configuration
-    aprsCallsign = config[0].get('aprsis', 'callsign').upper()
-    aprsPort = config[0].get('aprsis', 'port')
-    passcode = aprslib.passcode(aprsCallsign)
-    aprsInterval = config[0].getint('aprsis', 'interval')
+    # Start login for APRS-IS
+    logger.info("Logging into APRS-IS as {0} on port {1}".format(args.callsign, args.port))
+    if args.callsign == "nocall":
+        logger.warning("APRS-IS ignores the callsign \"nocall\"!")
 
     # Open APRS-IS connection
-    AIS = aprslib.IS(aprsCallsign, passwd=passcode, port=aprsPort)
+    passcode = aprslib.passcode(args.callsign)
+    AIS = aprslib.IS(args.callsign,
+                     passwd=passcode,
+                     port=args.port)
     try:
         AIS.connect()
 
     except aprslib.exceptions.LoginError as e:
         logger.error(e)
-        logger.info("APRS Login Callsign: {0} Port: {1}".format(aprsCallsign, aprsPort))
+        logger.info("APRS Login Callsign: {0} Port: {1}".format(args.callsign, args.port))
         sys.exit(1)
 
     except aprslib.exceptions.ConnectionError as e:
@@ -289,7 +222,7 @@ def main():
         sys.exit(1)
 
     # Create heartbeat
-    t1 = threading.Thread(target=heartbeat, args=(AIS, aprsCallsign, aprsInterval))
+    t1 = threading.Thread(target=heartbeat, args=(AIS, args.callsign, args.interval))
 
     # Create consumer
     t2 = threading.Thread(target=consumer, args=(AIS,))

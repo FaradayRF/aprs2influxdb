@@ -13,6 +13,8 @@ aprs2influxdb installs using pip can can be installed in editable mode with the 
 You must install and configure an [influxdb](https://www.influxdata.com/) database. Here is their open source [project documentation on GitHub](https://github.com/influxdata/influxdb).
 
 ### Installing
+It is highly recommended to install `aprs2influxdb` in a virtual environment using `virtualenv`. This helps smooth out installation on Windows and Linux. The executable may not be found and return a "ImportError: 'module' object has no attribute..." indicating that the installed scripts cannot find the installed files. Virtualenv fixes all this. It's not necessary to install in a discrete virtual environment, as long as it is separate from the python installation.
+
 #### PyPI
 `pip install aprs2influxdb`
 
@@ -46,6 +48,9 @@ Starting aprs2influxdb assuming an influxdb server is running and has a "mydb" d
 `aprs2influxdb --dbuser influxuser --dbpassword password123 --dbname mydb --callsign nocall`
 
 The above command uses default values for the options not specified. APRS-IS port 10152 is the full stream while other ports exist this is the most useful. aprslib defaults to `rotate.aprs.net` to pick an APRS core server. Please see [APRS-IS Servers](http://www.aprs-is.net/aprsservers.aspx) for more information.
+
+To exit `aprs2influxdb` use `cntl+c` on git bash for Windows and `cntl+z` followed by `kill <pid>` for the PID used by `aprs2influxdb` on Linux.
+
 ## Running the tests
 
 Unit testing will be implemented in a future pull request
