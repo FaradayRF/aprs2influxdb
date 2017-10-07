@@ -48,6 +48,9 @@ Starting aprs2influxdb assuming an influxdb server is running and has a "mydb" d
 `aprs2influxdb --dbuser influxuser --dbpassword password123 --dbname mydb --callsign nocall`
 
 The above command uses default values for the options not specified. APRS-IS port 10152 is the full stream while other ports exist this is the most useful. aprslib defaults to `rotate.aprs.net` to pick an APRS core server. Please see [APRS-IS Servers](http://www.aprs-is.net/aprsservers.aspx) for more information.
+
+To exit `aprs2influxdb` use `cntl+c` on git bash for Windows and `cntl+z` followed by `kill <pid>` for the PID used by `aprs2influxdb` on Linux.
+
 ## Running the tests
 
 Unit testing will be implemented in a future pull request
