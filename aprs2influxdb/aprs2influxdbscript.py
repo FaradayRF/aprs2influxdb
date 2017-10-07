@@ -3,7 +3,6 @@ import influxdb
 from influxdb import InfluxDBClient
 import logging
 import argparse
-import os
 import sys
 import threading
 import time
@@ -25,6 +24,7 @@ parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minute
 
 # Parse the arguments
 args = parser.parse_args()
+
 
 def jsonToLineProtocol(jsonData):
     """Converts JSON APRS-IS packet to influxdb line protocol
@@ -150,11 +150,11 @@ def callback(packet):
 def connectInfluxDB():
     """Connect to influxdb database with configuration values"""
 
-    return InfluxDBClient(  args.dbhost,
-                            args.dbport,
-                            args.dbuser,
-                            args.dbpassword,
-                            args.dbname)
+    return InfluxDBClient(args.dbhost,
+                          args.dbport,
+                          args.dbuser,
+                          args.dbpassword,
+                          args.dbname)
 
 
 def consumer(conn):
@@ -206,9 +206,9 @@ def main():
 
     # Open APRS-IS connection
     passcode = aprslib.passcode(args.callsign)
-    AIS = aprslib.IS(   args.callsign,
-                        passwd=passcode,
-                        port=args.port)
+    AIS = aprslib.IS(args.callsign,
+                     passwd=passcode,
+                     port=args.port)
     try:
         AIS.connect()
 
