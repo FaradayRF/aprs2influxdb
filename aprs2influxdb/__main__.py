@@ -7,9 +7,11 @@ import sys
 import threading
 import time
 
+from logging.handlers import TimedRotatingFileHandler
+
 # Globals
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("aprs2influxdb")
+#logging.basicConfig(level=logging.INFO)
+#logger = logging.getLogger("aprs2influxdb")
 
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
@@ -127,7 +129,7 @@ def callback(packet):
     keyword arguments:
     packet -- APRS-IS packet from aprslib connection
     """
-    logger.debug(packet)
+    logger.info(packet)
 
     # Open a new connection every time, probably SLOWWWW
     influxConn = connectInfluxDB()
@@ -190,6 +192,18 @@ def heartbeat(conn, callsign, interval):
         time.sleep(float(interval) * 60)  # Sent every interval minutes
 
 
+def createLog(path):
+    tempLogger = logging.getLogger(__name__)
+    tempLogger.setLevel(logging.INFO)
+
+    handler = TimedRotatingFileHandler(path,
+                                       when="h",
+                                       interval=1,
+                                       backupCount=5)
+    tempLogger.addHandler(handler)
+
+    return tempLogger
+
 def main():
     """Main function of aprs2influxdb
 
@@ -198,6 +212,8 @@ def main():
     another to periodically send status packets to APRS-IS in order to keep
     the connection alive.
     """
+    global logger
+    logger = createLog("log.txt")
 
     # Start login for APRS-IS
     logger.info("Logging into APRS-IS as {0} on port {1}".format(args.callsign, args.port))
@@ -209,6 +225,8 @@ def main():
     AIS = aprslib.IS(args.callsign,
                      passwd=passcode,
                      port=args.port)
+
+    AIS.logger = logger
     try:
         AIS.connect()
 
