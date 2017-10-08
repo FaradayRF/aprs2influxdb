@@ -77,7 +77,6 @@ def jsonToLineProtocol(jsonData):
 
         except KeyError as e:
             logger.error(e)
-            logger.error(jsonData)
 
         tagStr = ",".join(tags)
 
@@ -89,7 +88,6 @@ def jsonToLineProtocol(jsonData):
             fields.append("speed={0}".format(jsonData.get("speed", 0)))
         except KeyError as e:
             logger.error(e)
-            logger.error(jsonData)
 
         try:
             if jsonData["telemetry"]["seq"]:
@@ -104,13 +102,11 @@ def jsonToLineProtocol(jsonData):
         except KeyError as e:
             # Expect many KeyErrors for stations not sending telemetry
             logger.debug(e)
-            logger.debug(jsonData)
 
         try:
             comment = jsonData.get("comment").encode('ascii', 'ignore')
 
             if comment:
-                logger.debug(comment)
                 fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
 
         except UnicodeError as e:
@@ -147,7 +143,6 @@ def callback(packet):
 
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
-            logger.error(packet)
 
 
 def connectInfluxDB():
@@ -194,11 +189,17 @@ def heartbeat(conn, callsign, interval):
 
 
 def createLog(path):
+    """Create a rotating log at the specified path and return logger
+
+    keyword arguments:
+    path -- path to log file
+    """
     tempLogger = logging.getLogger(__name__)
-    tempLogger.setLevel(logging.INFO)
+    #tempLogger.setLevel(logging.INFO)
+    tempLogger.setLevel(logging.WARNING)
 
     handler = TimedRotatingFileHandler(path,
-                                       when="m",
+                                       when="h",
                                        interval=1,
                                        backupCount=5)
     tempLogger.addHandler(handler)
