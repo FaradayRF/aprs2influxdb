@@ -6,6 +6,7 @@ import argparse
 import sys
 import threading
 import time
+import os
 
 from logging.handlers import TimedRotatingFileHandler
 
@@ -197,7 +198,7 @@ def createLog(path):
     tempLogger.setLevel(logging.INFO)
 
     handler = TimedRotatingFileHandler(path,
-                                       when="h",
+                                       when="m",
                                        interval=1,
                                        backupCount=5)
     tempLogger.addHandler(handler)
@@ -212,8 +213,12 @@ def main():
     another to periodically send status packets to APRS-IS in order to keep
     the connection alive.
     """
+    # Create logger, must be global for functions and threads
     global logger
-    logger = createLog("log.txt")
+
+    # Log to sys.prefix + aprs2influxdb.log
+    log = os.path.join(sys.prefix, "aprs2influxdb.log")
+    logger = createLog(log)
 
     # Start login for APRS-IS
     logger.info("Logging into APRS-IS as {0} on port {1}".format(args.callsign, args.port))
