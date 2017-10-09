@@ -6,10 +6,13 @@ import argparse
 import sys
 import threading
 import time
+import os
+
+from logging.handlers import TimedRotatingFileHandler
 
 # Globals
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("aprs2influxdb")
+#logging.basicConfig(level=logging.INFO)
+#logger = logging.getLogger("aprs2influxdb")
 
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
@@ -21,6 +24,7 @@ parser.add_argument('--dbname', help='Set InfluxDB database name', default="mydb
 parser.add_argument('--callsign', help='Set APRS-IS login callsign', default="nocall")
 parser.add_argument('--port', help='Set APRS-IS port', default="10152")
 parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minutes', default="15")
+parser.add_argument('--debug', help='Set logging level to DEBUG', action="store_true")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -74,7 +78,6 @@ def jsonToLineProtocol(jsonData):
 
         except KeyError as e:
             logger.error(e)
-            logger.error(jsonData)
 
         tagStr = ",".join(tags)
 
@@ -86,7 +89,6 @@ def jsonToLineProtocol(jsonData):
             fields.append("speed={0}".format(jsonData.get("speed", 0)))
         except KeyError as e:
             logger.error(e)
-            logger.error(jsonData)
 
         try:
             if jsonData["telemetry"]["seq"]:
@@ -100,14 +102,12 @@ def jsonToLineProtocol(jsonData):
 
         except KeyError as e:
             # Expect many KeyErrors for stations not sending telemetry
-            logger.debug(e)
-            logger.debug(jsonData)
+            pass
 
         try:
             comment = jsonData.get("comment").encode('ascii', 'ignore')
 
             if comment:
-                logger.debug(comment)
                 fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
 
         except UnicodeError as e:
@@ -127,7 +127,7 @@ def callback(packet):
     keyword arguments:
     packet -- APRS-IS packet from aprslib connection
     """
-    logger.debug(packet)
+    logger.info(packet)
 
     # Open a new connection every time, probably SLOWWWW
     influxConn = connectInfluxDB()
@@ -144,7 +144,6 @@ def callback(packet):
 
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
-            logger.error(packet)
 
 
 def connectInfluxDB():
@@ -190,6 +189,35 @@ def heartbeat(conn, callsign, interval):
         time.sleep(float(interval) * 60)  # Sent every interval minutes
 
 
+def createLog(path, debug=False):
+    """Create a rotating log at the specified path and return logger
+
+    keyword arguments:
+    path -- path to log file
+    debug -- Boolean to set DEBUG log level,
+    """
+    tempLogger = logging.getLogger(__name__)
+
+    # Add handler for rotating file
+    handler = TimedRotatingFileHandler(path,
+                                       when="h",
+                                       interval=1,
+                                       backupCount=5)
+    tempLogger.addHandler(handler)
+
+    # Add handler for stdout printing
+    screenHandler = logging.StreamHandler(sys.stdout)
+    tempLogger.addHandler(screenHandler)
+
+    # Set logging level
+    if debug:
+        tempLogger.setLevel(logging.DEBUG)
+    else:
+        tempLogger.setLevel(logging.WARNING)
+
+    return tempLogger
+
+
 def main():
     """Main function of aprs2influxdb
 
@@ -198,6 +226,12 @@ def main():
     another to periodically send status packets to APRS-IS in order to keep
     the connection alive.
     """
+    # Create logger, must be global for functions and threads
+    global logger
+
+    # Log to sys.prefix + aprs2influxdb.log
+    log = os.path.join(sys.prefix, "aprs2influxdb.log")
+    logger = createLog(log, args.debug)
 
     # Start login for APRS-IS
     logger.info("Logging into APRS-IS as {0} on port {1}".format(args.callsign, args.port))
@@ -209,6 +243,8 @@ def main():
     AIS = aprslib.IS(args.callsign,
                      passwd=passcode,
                      port=args.port)
+
+    AIS.logger = logger
     try:
         AIS.connect()
 
