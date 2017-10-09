@@ -41,6 +41,7 @@ The program defaults use standard influxdb login information as well as example 
 * `--callsign CALLSIGN` set APRS-IS login callsign (default = nocall)
 * `--port PORT` set APRS-IS port (default = 10152)
 * `--interval INTERVAL` set APRS-IS heartbeat interval in minutes (default = 15)
+* `--debug` Set logging level to DEBUG (default = False)
 
 #### Example
 Starting aprs2influxdb assuming an influxdb server is running and has a "mydb" database configured is simple. Please note that APRS-IS ignores logins from "nocall" so you will connect but likely see nothing if you do not specify your amateur radio callsign.
