@@ -24,6 +24,7 @@ parser.add_argument('--dbname', help='Set InfluxDB database name', default="mydb
 parser.add_argument('--callsign', help='Set APRS-IS login callsign', default="nocall")
 parser.add_argument('--port', help='Set APRS-IS port', default="10152")
 parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minutes', default="15")
+parser.add_argument('--debug', help='Set logging level to DEBUG', action="store_true")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -101,7 +102,7 @@ def jsonToLineProtocol(jsonData):
 
         except KeyError as e:
             # Expect many KeyErrors for stations not sending telemetry
-            logger.debug(e)
+            pass
 
         try:
             comment = jsonData.get("comment").encode('ascii', 'ignore')
@@ -228,7 +229,7 @@ def main():
 
     # Log to sys.prefix + aprs2influxdb.log
     log = os.path.join(sys.prefix, "aprs2influxdb.log")
-    logger = createLog(log)
+    logger = createLog(log, args.debug)
 
     # Start login for APRS-IS
     logger.info("Logging into APRS-IS as {0} on port {1}".format(args.callsign, args.port))
