@@ -204,6 +204,7 @@ def createLog(path, debug=False):
                                        interval=1,
                                        backupCount=5)
     tempLogger.addHandler(handler)
+
     # Add handler for stdout printing
     screenHandler = logging.StreamHandler(sys.stdout)
     tempLogger.addHandler(screenHandler)
@@ -215,6 +216,7 @@ def createLog(path, debug=False):
         tempLogger.setLevel(logging.WARNING)
 
     return tempLogger
+
 
 def main():
     """Main function of aprs2influxdb
