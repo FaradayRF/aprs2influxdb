@@ -188,21 +188,30 @@ def heartbeat(conn, callsign, interval):
         time.sleep(float(interval) * 60)  # Sent every interval minutes
 
 
-def createLog(path):
+def createLog(path, debug=False):
     """Create a rotating log at the specified path and return logger
 
     keyword arguments:
     path -- path to log file
+    debug -- Boolean to set DEBUG log level,
     """
     tempLogger = logging.getLogger(__name__)
-    #tempLogger.setLevel(logging.INFO)
-    tempLogger.setLevel(logging.WARNING)
 
+    # Add handler for rotating file
     handler = TimedRotatingFileHandler(path,
                                        when="h",
                                        interval=1,
                                        backupCount=5)
     tempLogger.addHandler(handler)
+    # Add handler for stdout printing
+    screenHandler = logging.StreamHandler(sys.stdout)
+    tempLogger.addHandler(screenHandler)
+
+    # Set logging level
+    if debug:
+        tempLogger.setLevel(logging.DEBUG)
+    else:
+        tempLogger.setLevel(logging.WARNING)
 
     return tempLogger
 
