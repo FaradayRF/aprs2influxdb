@@ -751,12 +751,13 @@ def parseMessageText(rawText):
         textStr = ("messageText=\"{0}\"".format(text.replace("\"", "")))
 
     except UnicodeError as e:
+        logger.error("UnicodeError: {0}".format(rawText))
         logger.error(e)
 
     except TypeError as e:
+        logger.error("TypeError: {0}".format(rawText))
         logger.error(e)
 
-    logger.error(textStr)
     return textStr
 
 
