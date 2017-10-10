@@ -54,6 +54,10 @@ def jsonToLineProtocol(jsonData):
         # Parse Object APRS packet
         return parseObject(jsonData)
 
+    if jsonData["format"] == "compressed":
+        # Parse Object APRS packet
+        return parseCompressed(jsonData)
+
 
     logger.warning(jsonData["format"])
 
@@ -304,6 +308,90 @@ def parseObject(jsonData):
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
+
+def parseCompressed(jsonData):
+    """Parse Compressed APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet
+    # tag = from*
+    # tag = to*
+    # tag = symbolTable
+    # tag = symbol
+    # tag = format*
+    # tag = via*
+    # tag = messageCapable*
+    # field = latitude*
+    # field = longitude*
+    # field = gpsFixStatus*
+    # field = altitude*
+    # field = seq*
+    # field = analog1*
+    # field = analog2*
+    # field = analog3*
+    # field = analog4*
+    # field = analog5*
+    # field = bits*
+    # field = comment*
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        tags.append("format={0}".format(jsonData.get("format")))
+        tags.append("messageCapable={0}".format(jsonData.get("messagecapable")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+    try:
+        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
+        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
+        fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
+        fields.append("gpsFixStatus={0}".format(jsonData.get("gpsfixstatus", 0)))
+
+    except KeyError as e:
+        logger.error(e)
+
+    try:
+        if jsonData["telemetry"]["seq"]:
+            fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
+            fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
+            fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
+            fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
+            fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
+            fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
+            fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
+
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
+        pass
+
+    try:
+        if jsonData["comment"]:
+            fields.append(parseComment(jsonData["comment"]))
+
+    except KeyError:
+        # Comment fields often are not present so just pass
+        pass
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
 
 def parseComment(rawComment):
     try:
