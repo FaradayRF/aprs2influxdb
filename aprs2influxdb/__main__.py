@@ -65,60 +65,70 @@ def jsonToLineProtocol(jsonData):
     # Parse uncompressed format packets
     if jsonData["format"] == "uncompressed":
         # initialize variables
-        tags = []
-        fields = []
+        return parseUncompressed(jsonData)
 
-        # Set measurement to "packet"
-        measurement = "packet"
 
-        try:
-            tags.append("from={0}".format(jsonData.get("from")))
-            tags.append("to={0}".format(jsonData.get("to")))
-            tags.append("format={0}".format(jsonData.get("format")))
+def parseUncompressed(jsonData):
+    """Parse uncompressed APRS packets into influxedb line protocol
 
-        except KeyError as e:
-            logger.error(e)
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # initialize variables
+    tags = []
+    fields = []
 
-        tagStr = ",".join(tags)
+    # Set measurement to "packet"
+    measurement = "packet"
 
-        try:
-            fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
-            fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
-            fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
-            fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
-            fields.append("speed={0}".format(jsonData.get("speed", 0)))
-        except KeyError as e:
-            logger.error(e)
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        tags.append("format={0}".format(jsonData.get("format")))
 
-        try:
-            if jsonData["telemetry"]["seq"]:
-                fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
-                fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
-                fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
-                fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
-                fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
-                fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-                fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
+    except KeyError as e:
+        logger.error(e)
 
-        except KeyError as e:
-            # Expect many KeyErrors for stations not sending telemetry
-            pass
+    tagStr = ",".join(tags)
 
-        try:
-            comment = jsonData.get("comment").encode('ascii', 'ignore')
+    try:
+        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
+        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
+        fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
+        fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
+        fields.append("speed={0}".format(jsonData.get("speed", 0)))
+    except KeyError as e:
+        logger.error(e)
 
-            if comment:
-                fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
+    try:
+        if jsonData["telemetry"]["seq"]:
+            fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
+            fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
+            fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
+            fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
+            fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
+            fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
+            fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
-        except UnicodeError as e:
-            logger.error(e)
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
+        pass
 
-        except TypeError as e:
-            logger.error(e)
+    try:
+        comment = jsonData.get("comment").encode('ascii', 'ignore')
 
-        fieldsStr = ",".join(fields)
+        if comment:
+            fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
 
-        return measurement + "," + tagStr + " " + fieldsStr
+    except UnicodeError as e:
+        logger.error(e)
+
+    except TypeError as e:
+        logger.error(e)
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
 
 
 def callback(packet):
