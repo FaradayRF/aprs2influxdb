@@ -40,27 +40,6 @@ def jsonToLineProtocol(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
-    # measurement = packet
-    # tag = from
-    # tag = to
-    # tag = symbolTable
-    # tag = symbol
-    # tag = format
-    # tag = comment
-    # field = latitude
-    # field = longitude
-    # field = posAmbiguity
-    # field = altitude
-    # field = speed
-    # field = sequenceNumber
-    # field = analog1
-    # field = analog2
-    # field = analog3
-    # field = analog4
-    # field = analog5
-    # field = digital
 
     # Parse uncompressed format packets
     if jsonData["format"] == "uncompressed":
@@ -74,6 +53,50 @@ def parseUncompressed(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet
+    # tag = from*
+    # tag = to*
+    # tag = symbolTable
+    # tag = symbol
+    # tag = format*
+    # tag = objectFormat
+    # tag = objectName
+    # tag = via
+    # tag = messageCapable
+    # field = timestamp
+    # field = rawTimestamp
+    # field = latitude*
+    # field = longitude*
+    # field = posAmbiguity*
+    # field = altitude*
+    # field = speed
+    # field = course
+    # field = seq*
+    # field = analog1*
+    # field = analog2*
+    # field = analog3*
+    # field = analog4*
+    # field = analog5*
+    # field = bits*
+    # field = comment*
+    # field = path
+    # field = mbits
+    # field = mtype
+    # field = pressure
+    # field = rain1H
+    # field = rain24h
+    # field = rainSinceMidnight
+    # field = temperature
+    # field = windDirection
+    # field = windGust
+    # field = windSpeed
+    # field = wxRawTimestamp
+    # field = status
+    # field = addresse
+    # field = messageText
+
     # initialize variables
     tags = []
     fields = []
