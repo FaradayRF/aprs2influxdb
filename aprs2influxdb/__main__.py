@@ -60,8 +60,11 @@ def jsonToLineProtocol(jsonData):
 
     if jsonData["format"] == "status":
         # Parse status APRS packet
-
         return parseStatus(jsonData)
+
+    if jsonData["format"] == "wx":
+        # Parse WX APRS packet
+        return parseWX(jsonData)
 
 
 
@@ -428,6 +431,78 @@ def parseCompressed(jsonData):
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
         pass
+
+    try:
+        if jsonData["comment"]:
+            fields.append(parseComment(jsonData["comment"]))
+
+    except KeyError:
+        # Comment fields often are not present so just pass
+        pass
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseWX(jsonData):
+    """Parse WX APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet*
+    # tag = from
+    # tag = to
+    # tag = format
+    # tag = via
+    # field = wxRawTimestamp
+    # field = comment
+    # field = pressure
+    # field = rain1h
+    # field = rain24h
+    # field = rainSinceMidnight
+    # field = temperature
+    # field = windDirection
+    # field = windGust
+    # field = windSpeed
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
+        tags.append("format={0}".format(jsonData.get("format")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+    try:
+        fields.append("wxRawTimestamp={0}".format(jsonData.get("wx_raw_timestamp", 0)))
+        fields.append("pressure={0}".format(jsonData.get("pressure", 0)))
+        fields.append("rain1h={0}".format(jsonData.get("rain_1h", 0)))
+        fields.append("rain24h={0}".format(jsonData.get("rain_24h", 0)))
+        fields.append("rainSinceMidnight={0}".format(jsonData.get("rain_since_midnight", 0)))
+        fields.append("temperature={0}".format(jsonData.get("temperature", 0)))
+        fields.append("windDirection={0}".format(jsonData.get("wind_direction", 0)))
+        fields.append("windGust={0}".format(jsonData.get("wind_gust", 0)))
+        fields.append("windSpeed={0}".format(jsonData.get("wind_speed", 0)))
+
+    except KeyError as e:
+        logger.error("KeyError: {0}, Object Packet".format(e))
+        logger.error(jsonData)
 
     try:
         if jsonData["comment"]:
