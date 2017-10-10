@@ -78,7 +78,8 @@ def jsonToLineProtocol(jsonData):
         # Parse Message APRS packet
         return parseMessage(jsonData)
 
-    logger.warning(jsonData["format"])
+    # Uncomment for all other formats not yes parsed
+    #logger.warning(jsonData["format"])
 
 
 def parseUncompressed(jsonData):
