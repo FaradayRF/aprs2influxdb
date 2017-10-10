@@ -149,16 +149,12 @@ def parseUncompressed(jsonData):
         pass
 
     try:
-        comment = jsonData.get("comment").encode('ascii', 'ignore')
+        if jsonData["comment"]:
+            fields.append(parseComment(jsonData["comment"]))
 
-        if comment:
-            fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
-
-    except UnicodeError as e:
-        logger.error(e)
-
-    except TypeError as e:
-        logger.error(e)
+    except KeyError as e:
+        logger.error("KeyError: {0}, Uncompressed Packet".format(e))
+        logger.error(jsonData)
 
     fieldsStr = ",".join(fields)
 
@@ -223,14 +219,7 @@ def parseMicE(jsonData):
 
     try:
         if jsonData["comment"]:
-            comment = jsonData.get("comment").encode('ascii', 'ignore')
-            fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
-
-    except UnicodeError as e:
-        logger.error(e)
-
-    except TypeError as e:
-        logger.error(e)
+            fields.append(parseComment(jsonData["comment"]))
 
     except KeyError as e:
         logger.error("KeyError: {0}, Mic-E Packet".format(e))
@@ -239,6 +228,19 @@ def parseMicE(jsonData):
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
+
+def parseComment(rawComment):
+    try:
+        comment = rawComment.encode('ascii', 'ignore')
+        commentStr = ("comment=\"{0}\"".format(comment.replace("\"", "")))
+
+    except UnicodeError as e:
+        logger.error(e)
+
+    except TypeError as e:
+        logger.error(e)
+
+    return commentStr
 
 
 def callback(packet):
