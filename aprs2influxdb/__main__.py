@@ -259,8 +259,8 @@ def parseObject(jsonData):
     # tag = format*
     # tag = via
     # tag = alive*
-    # tag = objectFormat*
-    # tag = objectName*
+    # field = objectFormat*
+    # field = objectName*
     # field = latitude*
     # field = longitude*
     # field = posAmbiguity*
@@ -285,8 +285,6 @@ def parseObject(jsonData):
             tags.append("via={0}".format(jsonData.get("via")))
         tags.append("format={0}".format(jsonData.get("format")))
         tags.append("alive={0}".format(jsonData.get("alive")))
-        #tags.append("objectFormat={0}".format(jsonData.get("object_format")))
-        #tags.append("objectName=\"{0}\"".format(jsonData.get("object_name")))
 
     except KeyError as e:
         logger.error(e)
@@ -301,6 +299,8 @@ def parseObject(jsonData):
         fields.append("course={0}".format(jsonData.get("course", 0)))
         fields.append("rawTimestamp=\"{0}\"".format(jsonData.get("raw_timestamp", 0)))
         fields.append("timestamp={0}".format(jsonData.get("timestamp", 0)))
+        fields.append("objectFormat=\"{0}\"".format(jsonData.get("object_format")))
+        fields.append("objectName=\"{0}\"".format(jsonData.get("object_name")))
 
     except KeyError as e:
         logger.error("KeyError: {0}, Object Packet".format(e))
