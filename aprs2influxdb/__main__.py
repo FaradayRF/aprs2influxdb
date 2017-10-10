@@ -116,7 +116,7 @@ def parseUncompressed(jsonData):
     # field = analog5*
     # field = bits*
     # field = comment*
-    # field = path
+    # field = path*
     # field = mbits
     # field = mtype
     # field = pressure
@@ -155,6 +155,9 @@ def parseUncompressed(jsonData):
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
         fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
         fields.append("speed={0}".format(jsonData.get("speed", 0)))
+        if jsonData.get("path"):
+            fields.append(parsePath(jsonData.get("path")))
+
     except KeyError as e:
         logger.error(e)
 
@@ -206,7 +209,7 @@ def parseMicE(jsonData):
     # field = speed*
     # field = course*
     # field = comment*
-    # field = path
+    # field = path*
     # field = mbits*
     # field = mtype*
 
@@ -238,6 +241,9 @@ def parseMicE(jsonData):
         fields.append("course={0}".format(jsonData.get("course", 0)))
         fields.append("mbits={0}".format(jsonData.get("mbits", 0)))
         fields.append("mtype=\"{0}\"".format(jsonData.get("mtype", 0)))
+        if jsonData.get("path"):
+            fields.append(parsePath(jsonData.get("path")))
+
     except KeyError as e:
         logger.error("KeyError: {0}, Mic-E Packet".format(e))
         logger.error(jsonData)
@@ -280,7 +286,7 @@ def parseObject(jsonData):
     # field = speed*
     # field = course*
     # field = comment*
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -312,6 +318,8 @@ def parseObject(jsonData):
         fields.append("timestamp={0}".format(jsonData.get("timestamp", 0)))
         fields.append("objectFormat=\"{0}\"".format(jsonData.get("object_format")))
         fields.append("objectName=\"{0}\"".format(jsonData.get("object_name")))
+        if jsonData.get("path"):
+            fields.append(parsePath(jsonData.get("path")))
 
     except KeyError as e:
         logger.error("KeyError: {0}, Object Packet".format(e))
@@ -344,7 +352,7 @@ def parseStatus(jsonData):
     # tag = format*
     # tag = via*
     # field = status*
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -367,6 +375,9 @@ def parseStatus(jsonData):
 
 
     fields.append(parseStatusValue(jsonData["status"]))
+    if jsonData.get("path"):
+        fields.append(parsePath(jsonData.get("path")))
+
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
@@ -400,7 +411,7 @@ def parseCompressed(jsonData):
     # field = analog5*
     # field = bits*
     # field = comment*
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -425,6 +436,8 @@ def parseCompressed(jsonData):
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
         fields.append("gpsFixStatus={0}".format(jsonData.get("gpsfixstatus", 0)))
+        if jsonData.get("path"):
+            fields.append(parsePath(jsonData.get("path")))
 
     except KeyError as e:
         logger.error(e)
@@ -479,7 +492,7 @@ def parseWX(jsonData):
     # field = windDirection
     # field = windGust
     # field = windSpeed
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -510,6 +523,8 @@ def parseWX(jsonData):
         fields.append("windDirection={0}".format(jsonData.get("wind_direction", 0)))
         fields.append("windGust={0}".format(jsonData.get("wind_gust", 0)))
         fields.append("windSpeed={0}".format(jsonData.get("wind_speed", 0)))
+        if jsonData.get("path"):
+            fields.append(parsePath(jsonData.get("path")))
 
     except KeyError as e:
         logger.error("KeyError: {0}, Object Packet".format(e))
@@ -542,7 +557,7 @@ def parseBeacon(jsonData):
     # tag = format
     # tag = via
     # field = text*
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -565,6 +580,9 @@ def parseBeacon(jsonData):
 
 
     fields.append(parseTextValue(jsonData["text"]))
+    if jsonData.get("path"):
+        fields.append(parsePath(jsonData.get("path")))
+
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
@@ -585,7 +603,7 @@ def parseBulletin(jsonData):
     # field = messageText
     # field = bid
     # field = identifier (empty)
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -618,6 +636,8 @@ def parseBulletin(jsonData):
     fields.append("bid={0}".format(jsonData.get("bid", 0)))
     if jsonData.get("identifier"):
         fields.append("identifier={0}".format(jsonData.get("identifier")))
+    if jsonData.get("path"):
+        fields.append(parsePath(jsonData.get("path")))
 
     fieldsStr = ",".join(fields)
 
@@ -641,7 +661,7 @@ def parseMessage(jsonData):
     # field = messageText
     # field = bid
     # field = identifier (empty)
-    # field = path
+    # field = path*
 
     # initialize variables
     tags = []
@@ -675,6 +695,8 @@ def parseMessage(jsonData):
     fields.append("bid={0}".format(jsonData.get("bid", 0)))
     if jsonData.get("identifier"):
         fields.append("identifier={0}".format(jsonData.get("identifier")))
+    if jsonData.get("path"):
+        fields.append(parsePath(jsonData.get("path")))
 
     fieldsStr = ",".join(fields)
 
@@ -736,6 +758,19 @@ def parseMessageText(rawText):
 
     logger.error(textStr)
     return textStr
+
+
+def parsePath(path):
+    """Take path and turn into a string
+
+    keyword arguments:
+    path -- list of paths
+    """
+
+    temp = ",".join(path)
+    pathStr = ("path=\"{0}\"".format(temp))
+
+    return pathStr
 
 
 def callback(packet):
