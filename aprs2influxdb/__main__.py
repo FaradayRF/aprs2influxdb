@@ -66,6 +66,10 @@ def jsonToLineProtocol(jsonData):
         # Parse WX APRS packet
         return parseWX(jsonData)
 
+    if jsonData["format"] == "beacon":
+        # Parse WX APRS packet
+        return parseBeacon(jsonData)
+
 
 
     logger.warning(jsonData["format"])
@@ -517,6 +521,48 @@ def parseWX(jsonData):
     return measurement + "," + tagStr + " " + fieldsStr
 
 
+def parseBeacon(jsonData):
+    """Parse Beacon APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet
+    # tag = from
+    # tag = to
+    # tag = format
+    # tag = via
+    # field = text*
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
+        tags.append("format={0}".format(jsonData.get("format")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+
+    fields.append(parseTextValue(jsonData["text"]))
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
 def parseComment(rawComment):
     try:
         comment = rawComment.encode('ascii', 'ignore')
@@ -543,6 +589,19 @@ def parseStatusValue(rawStatus):
 
     return statusStr
 
+
+def parseTextValue(rawText):
+    try:
+        text = rawText.encode('ascii', 'ignore')
+        textStr = ("status=\"{0}\"".format(text.replace("\"", "")))
+
+    except UnicodeError as e:
+        logger.error(e)
+
+    except TypeError as e:
+        logger.error(e)
+
+    return textStr
 
 
 def callback(packet):
