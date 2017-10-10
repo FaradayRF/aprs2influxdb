@@ -187,6 +187,7 @@ def parseUncompressed(jsonData):
 
     return measurement + "," + tagStr + " " + fieldsStr
 
+
 def parseMicE(jsonData):
     """Parse Mic-e APRS packets into influxedb line protocol
 
@@ -259,6 +260,7 @@ def parseMicE(jsonData):
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
+
 
 def parseObject(jsonData):
     """Parse Object APRS packets into influxedb line protocol
@@ -372,7 +374,6 @@ def parseStatus(jsonData):
         logger.error(e)
 
     tagStr = ",".join(tags)
-
 
     fields.append(parseStatusValue(jsonData["status"]))
     if jsonData.get("path"):
@@ -578,7 +579,6 @@ def parseBeacon(jsonData):
 
     tagStr = ",".join(tags)
 
-
     fields.append(parseTextValue(jsonData["text"]))
     if jsonData.get("path"):
         fields.append(parsePath(jsonData.get("path")))
@@ -586,6 +586,7 @@ def parseBeacon(jsonData):
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
+
 
 def parseBulletin(jsonData):
     """Parse Bulletin APRS packets into influxedb line protocol
@@ -623,7 +624,6 @@ def parseBulletin(jsonData):
         logger.error(e)
 
     tagStr = ",".join(tags)
-
 
     try:
         if jsonData["message_text"]:
@@ -683,7 +683,6 @@ def parseMessage(jsonData):
 
     tagStr = ",".join(tags)
 
-
     try:
         if jsonData["message_text"]:
             fields.append(parseMessageText(jsonData["message_text"]))
@@ -703,7 +702,6 @@ def parseMessage(jsonData):
     return measurement + "," + tagStr + " " + fieldsStr
 
 
-
 def parseComment(rawComment):
     try:
         comment = rawComment.encode('ascii', 'ignore')
@@ -716,6 +714,7 @@ def parseComment(rawComment):
         logger.error(e)
 
     return commentStr
+
 
 def parseStatusValue(rawStatus):
     try:
