@@ -45,18 +45,18 @@ def jsonToLineProtocol(jsonData):
     if jsonData["format"] == "uncompressed":
         # Parse uncompressed APRS packet
         return parseUncompressed(jsonData)
+
     if jsonData["format"] == "mic-e":
         # Parse Mice-E APRS packet
-        #logger.warning(repr(jsonData))
         return parseMicE(jsonData)
+
+    if jsonData["format"] == "object":
+        # Parse Object APRS packet
+        return parseObject(jsonData)
 
 
     logger.warning(jsonData["format"])
 
-    # try:
-    #     logger.warning(parseUncompressed(jsonData))
-    # except:
-    #     pass
 
 def parseUncompressed(jsonData):
     """Parse uncompressed APRS packets into influxedb line protocol
@@ -155,7 +155,7 @@ def parseUncompressed(jsonData):
     except KeyError:
         # Comment fields often are not present so just pass
         pass
-    
+
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
@@ -229,6 +229,83 @@ def parseMicE(jsonData):
 
     return measurement + "," + tagStr + " " + fieldsStr
 
+def parseObject(jsonData):
+    """Parse Object APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet*
+    # tag = from*
+    # tag = to
+    # tag = symbolTable
+    # tag = symbol
+    # tag = format*
+    # tag = via
+    # tag = alive*
+    # tag = objectFormat*
+    # tag = objectName*
+    # field = latitude*
+    # field = longitude*
+    # field = posAmbiguity*
+    # field = rawTimestamp*
+    # field = timestamp*
+    # field = speed*
+    # field = course*
+    # field = comment*
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
+        else:
+            logger.error("SKIPPED")
+        tags.append("format={0}".format(jsonData.get("format")))
+        tags.append("alive={0}".format(jsonData.get("alive")))
+        #tags.append("objectFormat={0}".format(jsonData.get("object_format")))
+        #tags.append("objectName=\"{0}\"".format(jsonData.get("object_name")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+    try:
+        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
+        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
+        fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
+        fields.append("speed={0}".format(jsonData.get("speed", 0)))
+        fields.append("course={0}".format(jsonData.get("course", 0)))
+        fields.append("rawTimestamp=\"{0}\"".format(jsonData.get("raw_timestamp", 0)))
+        fields.append("timestamp={0}".format(jsonData.get("timestamp", 0)))
+
+    except KeyError as e:
+        logger.error("KeyError: {0}, Object Packet".format(e))
+        logger.error(jsonData)
+
+    try:
+        if jsonData["comment"]:
+            fields.append(parseComment(jsonData["comment"]))
+
+    except KeyError:
+        # Comment fields often are not present so just pass
+        pass
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
 def parseComment(rawComment):
     try:
         comment = rawComment.encode('ascii', 'ignore')
@@ -269,6 +346,7 @@ def callback(packet):
 
         except influxdb.exceptions.InfluxDBClientError as e:
             logger.error(e)
+            logger.error(packet)
 
 
 def connectInfluxDB():
