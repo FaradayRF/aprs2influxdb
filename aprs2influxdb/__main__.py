@@ -43,9 +43,20 @@ def jsonToLineProtocol(jsonData):
 
     # Parse uncompressed format packets
     if jsonData["format"] == "uncompressed":
-        # initialize variables
+        # Parse uncompressed APRS packet
         return parseUncompressed(jsonData)
+    if jsonData["format"] == "mic-e":
+        # Parse Mice-E APRS packet
+        #logger.warning(repr(jsonData))
+        return parseMicE(jsonData)
 
+
+    logger.warning(jsonData["format"])
+
+    # try:
+    #     logger.warning(parseUncompressed(jsonData))
+    # except:
+    #     pass
 
 def parseUncompressed(jsonData):
     """Parse uncompressed APRS packets into influxedb line protocol
@@ -153,6 +164,82 @@ def parseUncompressed(jsonData):
 
     return measurement + "," + tagStr + " " + fieldsStr
 
+def parseMicE(jsonData):
+    """Parse Mic-e APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet*
+    # tag = from*
+    # tag = to*
+    # tag = symbolTable
+    # tag = symbol
+    # tag = format*
+    # tag = via*
+    # field = latitude*
+    # field = longitude*
+    # field = posAmbiguity*
+    # field = altitude*
+    # field = speed*
+    # field = course*
+    # field = comment*
+    # field = path
+    # field = mbits*
+    # field = mtype*
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        tags.append("via={0}".format(jsonData.get("via")))
+        tags.append("format={0}".format(jsonData.get("format")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+    try:
+        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
+        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
+        fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
+        fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
+        fields.append("speed={0}".format(jsonData.get("speed", 0)))
+        fields.append("course={0}".format(jsonData.get("course", 0)))
+        fields.append("mbits={0}".format(jsonData.get("mbits", 0)))
+        fields.append("mtype=\"{0}\"".format(jsonData.get("mtype", 0)))
+    except KeyError as e:
+        logger.error("KeyError: {0}, Mic-E Packet".format(e))
+        logger.error(jsonData)
+
+    try:
+        if jsonData["comment"]:
+            comment = jsonData.get("comment").encode('ascii', 'ignore')
+            fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
+
+    except UnicodeError as e:
+        logger.error(e)
+
+    except TypeError as e:
+        logger.error(e)
+
+    except KeyError as e:
+        logger.error("KeyError: {0}, Mic-E Packet".format(e))
+        logger.error(jsonData)
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
 
 def callback(packet):
     """aprslib callback for every packet received from APRS-IS connection
@@ -160,14 +247,17 @@ def callback(packet):
     keyword arguments:
     packet -- APRS-IS packet from aprslib connection
     """
-    logger.info(packet)
+    #logger.info(packet)
 
     # Open a new connection every time, probably SLOWWWW
     influxConn = connectInfluxDB()
-    line = jsonToLineProtocol(packet)
+    try:
+        line = jsonToLineProtocol(packet)
+    except StandardError as e:
+        logger.error(e)
 
     if line:
-        logger.debug(line)
+        #logger.debug(line)
         try:
             influxConn.write_points([line], protocol='line')
 
