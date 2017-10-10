@@ -196,7 +196,8 @@ def parseMicE(jsonData):
     try:
         tags.append("from={0}".format(jsonData.get("from")))
         tags.append("to={0}".format(jsonData.get("to")))
-        tags.append("via={0}".format(jsonData.get("via")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -269,8 +270,6 @@ def parseObject(jsonData):
         tags.append("to={0}".format(jsonData.get("to")))
         if jsonData.get("via"):
             tags.append("via={0}".format(jsonData.get("via")))
-        else:
-            logger.error("SKIPPED")
         tags.append("format={0}".format(jsonData.get("format")))
         tags.append("alive={0}".format(jsonData.get("alive")))
         #tags.append("objectFormat={0}".format(jsonData.get("object_format")))
