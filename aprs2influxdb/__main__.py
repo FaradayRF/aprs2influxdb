@@ -58,6 +58,12 @@ def jsonToLineProtocol(jsonData):
         # Parse Object APRS packet
         return parseCompressed(jsonData)
 
+    if jsonData["format"] == "status":
+        # Parse status APRS packet
+
+        return parseStatus(jsonData)
+
+
 
     logger.warning(jsonData["format"])
 
@@ -309,6 +315,49 @@ def parseObject(jsonData):
 
     return measurement + "," + tagStr + " " + fieldsStr
 
+
+def parseStatus(jsonData):
+    """Parse Status APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet*
+    # tag = from*
+    # tag = to*
+    # tag = format*
+    # tag = via*
+    # field = status*
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
+        tags.append("format={0}".format(jsonData.get("format")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+
+    fields.append(parseStatusValue(jsonData["status"]))
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
 def parseCompressed(jsonData):
     """Parse Compressed APRS packets into influxedb line protocol
 
@@ -405,6 +454,20 @@ def parseComment(rawComment):
         logger.error(e)
 
     return commentStr
+
+def parseStatusValue(rawStatus):
+    try:
+        status = rawStatus.encode('ascii', 'ignore')
+        statusStr = ("status=\"{0}\"".format(status.replace("\"", "")))
+
+    except UnicodeError as e:
+        logger.error(e)
+
+    except TypeError as e:
+        logger.error(e)
+
+    return statusStr
+
 
 
 def callback(packet):
