@@ -70,7 +70,13 @@ def jsonToLineProtocol(jsonData):
         # Parse WX APRS packet
         return parseBeacon(jsonData)
 
+    if jsonData["format"] == "bulletin":
+        # Parse Bulletin APRS packet
+        return parseBulletin(jsonData)
 
+    if jsonData["format"] == "message":
+        # Parse Message APRS packet
+        return parseMessage(jsonData)
 
     logger.warning(jsonData["format"])
 
@@ -562,6 +568,118 @@ def parseBeacon(jsonData):
 
     return measurement + "," + tagStr + " " + fieldsStr
 
+def parseBulletin(jsonData):
+    """Parse Bulletin APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet
+    # tag = from
+    # tag = to
+    # tag = format
+    # tag = via
+    # field = messageText
+    # field = bid
+    # field = identifier (empty)
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
+        tags.append("format={0}".format(jsonData.get("format")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+
+    try:
+        if jsonData["message_text"]:
+            fields.append(parseMessageText(jsonData["message_text"]))
+
+    except KeyError:
+        # happens
+        pass
+
+    fields.append("bid={0}".format(jsonData.get("bid", 0)))
+    if jsonData.get("identifier"):
+        fields.append("identifier={0}".format(jsonData.get("identifier")))
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseMessage(jsonData):
+    """Parse Message APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet
+    # tag = from
+    # tag = to
+    # tag = format
+    # tag = via
+    # tag = addresse
+    # field = messageText
+    # field = bid
+    # field = identifier (empty)
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    try:
+        tags.append("from={0}".format(jsonData.get("from")))
+        tags.append("to={0}".format(jsonData.get("to")))
+        if jsonData.get("via"):
+            tags.append("via={0}".format(jsonData.get("via")))
+        tags.append("format={0}".format(jsonData.get("format")))
+        tags.append("addresse={0}".format(jsonData.get("addresse")))
+
+    except KeyError as e:
+        logger.error(e)
+
+    tagStr = ",".join(tags)
+
+
+    try:
+        if jsonData["message_text"]:
+            fields.append(parseMessageText(jsonData["message_text"]))
+
+    except KeyError:
+        # happens
+        pass
+
+    fields.append("bid={0}".format(jsonData.get("bid", 0)))
+    if jsonData.get("identifier"):
+        fields.append("identifier={0}".format(jsonData.get("identifier")))
+
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
 
 def parseComment(rawComment):
     try:
@@ -593,7 +711,7 @@ def parseStatusValue(rawStatus):
 def parseTextValue(rawText):
     try:
         text = rawText.encode('ascii', 'ignore')
-        textStr = ("status=\"{0}\"".format(text.replace("\"", "")))
+        textStr = ("text=\"{0}\"".format(text.replace("\"", "")))
 
     except UnicodeError as e:
         logger.error(e)
@@ -601,6 +719,21 @@ def parseTextValue(rawText):
     except TypeError as e:
         logger.error(e)
 
+    return textStr
+
+
+def parseMessageText(rawText):
+    try:
+        text = rawText.encode('ascii', 'ignore')
+        textStr = ("messageText=\"{0}\"".format(text.replace("\"", "")))
+
+    except UnicodeError as e:
+        logger.error(e)
+
+    except TypeError as e:
+        logger.error(e)
+
+    logger.error(textStr)
     return textStr
 
 
