@@ -152,10 +152,10 @@ def parseUncompressed(jsonData):
         if jsonData["comment"]:
             fields.append(parseComment(jsonData["comment"]))
 
-    except KeyError as e:
-        logger.error("KeyError: {0}, Uncompressed Packet".format(e))
-        logger.error(jsonData)
-
+    except KeyError:
+        # Comment fields often are not present so just pass
+        pass
+    
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
@@ -221,9 +221,9 @@ def parseMicE(jsonData):
         if jsonData["comment"]:
             fields.append(parseComment(jsonData["comment"]))
 
-    except KeyError as e:
-        logger.error("KeyError: {0}, Mic-E Packet".format(e))
-        logger.error(jsonData)
+    except KeyError:
+        # Comment fields often are not present so just pass
+        pass
 
     fieldsStr = ",".join(fields)
 
