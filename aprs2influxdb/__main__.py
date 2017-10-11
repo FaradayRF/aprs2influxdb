@@ -264,7 +264,6 @@ def parseMicE(jsonData):
     except:
         pass
 
-
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
@@ -716,7 +715,7 @@ def parseTextString(rawText, name):
     try:
         text = rawText.encode('ascii', 'ignore')
         if text != "\\":
-            text = text.replace("\"", "\\\"") # Remove quotes per line protocol
+            text = text.replace("\"", "\\\"")  # Remove quotes per line protocol
         textStr = ("{0}=\"{1}\"".format(name, text))
 
     except UnicodeError as e:
