@@ -705,7 +705,9 @@ def parseMessage(jsonData):
 def parseComment(rawComment):
     try:
         comment = rawComment.encode('ascii', 'ignore')
-        commentStr = ("comment=\"{0}\"".format(comment.replace("\"", "")))
+        if comment != "\\":
+            comment = comment.replace("\"", "\\\"") # Remove quotes per line protocol
+        commentStr = ("comment=\"{0}\"".format(comment))
 
     except UnicodeError as e:
         logger.error(e)
@@ -719,7 +721,8 @@ def parseComment(rawComment):
 def parseStatusValue(rawStatus):
     try:
         status = rawStatus.encode('ascii', 'ignore')
-        statusStr = ("status=\"{0}\"".format(status.replace("\"", "")))
+        status = status.replace("\"", "\\\"") # Remove quotes per line protocol
+        statusStr = ("status=\"{0}\"".format(status))
 
     except UnicodeError as e:
         logger.error(e)
@@ -733,7 +736,8 @@ def parseStatusValue(rawStatus):
 def parseTextValue(rawText):
     try:
         text = rawText.encode('ascii', 'ignore')
-        textStr = ("text=\"{0}\"".format(text.replace("\"", "")))
+        text = text.replace("\"", "\\\"") # Remove quotes per line protocol
+        textStr = ("text=\"{0}\"".format(text))
 
     except UnicodeError as e:
         logger.error(e)
@@ -747,7 +751,8 @@ def parseTextValue(rawText):
 def parseMessageText(rawText):
     try:
         text = rawText.encode('ascii', 'ignore')
-        textStr = ("messageText=\"{0}\"".format(text.replace("\"", "")))
+        text = text.replace("\"", "\\\"") # Remove quotes per line protocol
+        textStr = ("messageText=\"{0}\"".format(text))
 
     except UnicodeError as e:
         logger.error("UnicodeError: {0}".format(rawText))
