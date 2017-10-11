@@ -198,7 +198,7 @@ def parseMicE(jsonData):
     # Schema
     # measurement = packet*
     # tag = from*
-    # tag = to*
+    # field = dest*
     # tag = symbolTable
     # tag = symbol
     # tag = format*
@@ -223,7 +223,7 @@ def parseMicE(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
+
         if jsonData.get("via"):
             tags.append("via={0}".format(jsonData.get("via")))
         tags.append("format={0}".format(jsonData.get("format")))
@@ -256,6 +256,14 @@ def parseMicE(jsonData):
     except KeyError:
         # Comment fields often are not present so just pass
         pass
+
+    try:
+        dest = "dest=\"{0}\"".format(jsonData.get("to"))
+        fields.append(dest)
+
+    except:
+        pass
+
 
     fieldsStr = ",".join(fields)
 
