@@ -177,7 +177,7 @@ def parseUncompressed(jsonData):
 
     try:
         if jsonData["comment"]:
-            fields.append(parseComment(jsonData["comment"]))
+            fields.append(parseTextString(jsonData["comment"], "comment"))
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -251,7 +251,7 @@ def parseMicE(jsonData):
 
     try:
         if jsonData["comment"]:
-            fields.append(parseComment(jsonData["comment"]))
+            fields.append(parseTextString(jsonData["comment"], "comment"))
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -329,7 +329,7 @@ def parseObject(jsonData):
 
     try:
         if jsonData["comment"]:
-            fields.append(parseComment(jsonData["comment"]))
+            fields.append(parseTextString(jsonData["comment"], "comment"))
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -375,7 +375,8 @@ def parseStatus(jsonData):
 
     tagStr = ",".join(tags)
 
-    fields.append(parseStatusValue(jsonData["status"]))
+    fields.append(parseTextString(jsonData["status"], "status"))
+
     if jsonData.get("path"):
         fields.append(parsePath(jsonData.get("path")))
 
@@ -459,7 +460,7 @@ def parseCompressed(jsonData):
 
     try:
         if jsonData["comment"]:
-            fields.append(parseComment(jsonData["comment"]))
+            fields.append(parseTextString(jsonData["comment"], "comment"))
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -533,7 +534,7 @@ def parseWX(jsonData):
 
     try:
         if jsonData["comment"]:
-            fields.append(parseComment(jsonData["comment"]))
+            fields.append(parseTextString(jsonData["comment"], "comment"))
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -579,7 +580,8 @@ def parseBeacon(jsonData):
 
     tagStr = ",".join(tags)
 
-    fields.append(parseTextValue(jsonData["text"]))
+    fields.append(parseTextString(jsonData["text"], "text"))
+
     if jsonData.get("path"):
         fields.append(parsePath(jsonData.get("path")))
 
@@ -627,7 +629,7 @@ def parseBulletin(jsonData):
 
     try:
         if jsonData["message_text"]:
-            fields.append(parseMessageText(jsonData["message_text"]))
+            fields.append(parseTextString(jsonData["message_text"], "messageText"))
 
     except KeyError:
         # happens
@@ -685,7 +687,7 @@ def parseMessage(jsonData):
 
     try:
         if jsonData["message_text"]:
-            fields.append(parseMessageText(jsonData["message_text"]))
+            fields.append(parseTextString(jsonData["message_text"], "messageText"))
 
     except KeyError:
         # happens
@@ -702,64 +704,17 @@ def parseMessage(jsonData):
     return measurement + "," + tagStr + " " + fieldsStr
 
 
-def parseComment(rawComment):
-    try:
-        comment = rawComment.encode('ascii', 'ignore')
-        if comment != "\\":
-            comment = comment.replace("\"", "\\\"") # Remove quotes per line protocol
-        commentStr = ("comment=\"{0}\"".format(comment))
-
-    except UnicodeError as e:
-        logger.error(e)
-
-    except TypeError as e:
-        logger.error(e)
-
-    return commentStr
-
-
-def parseStatusValue(rawStatus):
-    try:
-        status = rawStatus.encode('ascii', 'ignore')
-        status = status.replace("\"", "\\\"") # Remove quotes per line protocol
-        statusStr = ("status=\"{0}\"".format(status))
-
-    except UnicodeError as e:
-        logger.error(e)
-
-    except TypeError as e:
-        logger.error(e)
-
-    return statusStr
-
-
-def parseTextValue(rawText):
+def parseTextString(rawText, name):
     try:
         text = rawText.encode('ascii', 'ignore')
-        text = text.replace("\"", "\\\"") # Remove quotes per line protocol
-        textStr = ("text=\"{0}\"".format(text))
+        if text != "\\":
+            text = text.replace("\"", "\\\"") # Remove quotes per line protocol
+        textStr = ("{0}=\"{1}\"".format(name, text))
 
     except UnicodeError as e:
         logger.error(e)
 
     except TypeError as e:
-        logger.error(e)
-
-    return textStr
-
-
-def parseMessageText(rawText):
-    try:
-        text = rawText.encode('ascii', 'ignore')
-        text = text.replace("\"", "\\\"") # Remove quotes per line protocol
-        textStr = ("messageText=\"{0}\"".format(text))
-
-    except UnicodeError as e:
-        logger.error("UnicodeError: {0}".format(rawText))
-        logger.error(e)
-
-    except TypeError as e:
-        logger.error("TypeError: {0}".format(rawText))
         logger.error(e)
 
     return textStr
