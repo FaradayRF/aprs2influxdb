@@ -442,7 +442,7 @@ def parseCompressed(jsonData):
     tagStr = ",".join(tags)
 
     try:
-        fields.append("messageCapable=\"{0}\"".format(jsonData.get("messagecapable")))
+        #fields.append("messageCapable=\"{0}\"".format(jsonData.get("messagecapable")))
         fields.append("to=\"{0}\"".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
