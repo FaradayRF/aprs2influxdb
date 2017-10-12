@@ -92,14 +92,14 @@ def parseUncompressed(jsonData):
     # Schema
     # measurement = packet
     # tag = from*
-    # tag = to*
-    # tag = symbolTable
-    # tag = symbol
+    # field = to*
+    # field = symbolTable
+    # field = symbol
     # tag = format*
-    # tag = objectFormat
-    # tag = objectName
-    # tag = via
-    # tag = messageCapable
+    # field = objectFormat
+    # field = objectName
+    # field = via
+    # field = messageCapable
     # field = timestamp
     # field = rawTimestamp
     # field = latitude*
@@ -141,7 +141,6 @@ def parseUncompressed(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -150,6 +149,7 @@ def parseUncompressed(jsonData):
     tagStr = ",".join(tags)
 
     try:
+        fields.append("to={0}".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
@@ -185,6 +185,7 @@ def parseUncompressed(jsonData):
 
     fieldsStr = ",".join(fields)
 
+    logger.warning
     return measurement + "," + tagStr + " " + fieldsStr
 
 
@@ -199,10 +200,10 @@ def parseMicE(jsonData):
     # measurement = packet*
     # tag = from*
     # field = dest*
-    # tag = symbolTable
-    # tag = symbol
+    # field = symbolTable
+    # field = symbol
     # tag = format*
-    # tag = via*
+    # field = via*
     # field = latitude*
     # field = longitude*
     # field = posAmbiguity*
@@ -223,9 +224,6 @@ def parseMicE(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -234,6 +232,8 @@ def parseMicE(jsonData):
     tagStr = ",".join(tags)
 
     try:
+        if jsonData.get("via"):
+            fields.append("via={0}".format(jsonData.get("via")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
@@ -279,12 +279,12 @@ def parseObject(jsonData):
     # Schema
     # measurement = packet*
     # tag = from*
-    # tag = to
-    # tag = symbolTable
-    # tag = symbol
+    # field = to
+    # field = symbolTable
+    # field = symbol
     # tag = format*
-    # tag = via
-    # tag = alive*
+    # field = via
+    # field = alive*
     # field = objectFormat*
     # field = objectName*
     # field = latitude*
@@ -306,11 +306,8 @@ def parseObject(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
+        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
-        tags.append("alive={0}".format(jsonData.get("alive")))
 
     except KeyError as e:
         logger.error(e)
@@ -318,6 +315,10 @@ def parseObject(jsonData):
     tagStr = ",".join(tags)
 
     try:
+        fields.append("alive={0}".format(jsonData.get("alive")))
+        if jsonData.get("via"):
+            fields.append("via={0}".format(jsonData.get("via")))
+        fields.append("to={0}".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
@@ -357,9 +358,9 @@ def parseStatus(jsonData):
     # Schema
     # measurement = packet*
     # tag = from*
-    # tag = to*
+    # field = to*
     # tag = format*
-    # tag = via*
+    # field = via*
     # field = status*
     # field = path*
 
@@ -372,9 +373,7 @@ def parseStatus(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
+        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -382,6 +381,9 @@ def parseStatus(jsonData):
 
     tagStr = ",".join(tags)
 
+    if jsonData.get("via"):
+        fields.append("via={0}".format(jsonData.get("via")))
+    fields.append("to={0}".format(jsonData.get("to")))
     fields.append(parseTextString(jsonData["status"], "status"))
 
     if jsonData.get("path"):
@@ -402,12 +404,12 @@ def parseCompressed(jsonData):
     # Schema
     # measurement = packet
     # tag = from*
-    # tag = to*
-    # tag = symbolTable
-    # tag = symbol
+    # field = to*
+    # field = symbolTable
+    # field = symbol
     # tag = format*
-    # tag = via*
-    # tag = messageCapable*
+    # field = via*
+    # field = messageCapable*
     # field = latitude*
     # field = longitude*
     # field = gpsFixStatus*
@@ -431,9 +433,8 @@ def parseCompressed(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
+        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
-        tags.append("messageCapable={0}".format(jsonData.get("messagecapable")))
 
     except KeyError as e:
         logger.error(e)
@@ -441,6 +442,8 @@ def parseCompressed(jsonData):
     tagStr = ",".join(tags)
 
     try:
+        fields.append("messageCapable={0}".format(jsonData.get("messagecapable")))
+        fields.append("to={0}".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
@@ -488,11 +491,12 @@ def parseWX(jsonData):
     # Schema
     # measurement = packet*
     # tag = from
-    # tag = to
+    # field = to
     # tag = format
-    # tag = via
+    # field = via
     # field = wxRawTimestamp
     # field = comment
+    # field = humidity
     # field = pressure
     # field = rain1h
     # field = rain24h
@@ -512,9 +516,7 @@ def parseWX(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
+        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -523,7 +525,11 @@ def parseWX(jsonData):
     tagStr = ",".join(tags)
 
     try:
+        if jsonData.get("via"):
+            fields.append("via={0}".format(jsonData.get("via")))
+        fields.append("to={0}".format(jsonData.get("to")))
         fields.append("wxRawTimestamp={0}".format(jsonData.get("wx_raw_timestamp", 0)))
+        fields.append("humidity={0}".format(jsonData.get("humidity", 0)))
         fields.append("pressure={0}".format(jsonData.get("pressure", 0)))
         fields.append("rain1h={0}".format(jsonData.get("rain_1h", 0)))
         fields.append("rain24h={0}".format(jsonData.get("rain_24h", 0)))
@@ -562,9 +568,9 @@ def parseBeacon(jsonData):
     # Schema
     # measurement = packet
     # tag = from
-    # tag = to
+    # field = to
     # tag = format
-    # tag = via
+    # field = via
     # field = text*
     # field = path*
 
@@ -577,9 +583,6 @@ def parseBeacon(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -587,6 +590,10 @@ def parseBeacon(jsonData):
 
     tagStr = ",".join(tags)
 
+    fields.append("to={0}".format(jsonData.get("to")))
+    if jsonData.get("via"):
+        fields.append("via={0}".format(jsonData.get("via")))
+    fields.append("to={0}".format(jsonData.get("to")))
     fields.append(parseTextString(jsonData["text"], "text"))
 
     if jsonData.get("path"):
@@ -607,9 +614,9 @@ def parseBulletin(jsonData):
     # Schema
     # measurement = packet
     # tag = from
-    # tag = to
+    # field = to
     # tag = format
-    # tag = via
+    # field = via
     # field = messageText
     # field = bid
     # field = identifier (empty)
@@ -624,9 +631,7 @@ def parseBulletin(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
+        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -642,6 +647,9 @@ def parseBulletin(jsonData):
         # happens
         pass
 
+    if jsonData.get("via"):
+        fields.append("via={0}".format(jsonData.get("via")))
+    fields.append("to={0}".format(jsonData.get("to")))
     fields.append("bid={0}".format(jsonData.get("bid", 0)))
     if jsonData.get("identifier"):
         fields.append("identifier={0}".format(jsonData.get("identifier")))
@@ -663,10 +671,10 @@ def parseMessage(jsonData):
     # Schema
     # measurement = packet
     # tag = from
-    # tag = to
+    # field = to
     # tag = format
-    # tag = via
-    # tag = addresse
+    # field = via
+    # field = addresse
     # field = messageText
     # field = bid
     # field = identifier (empty)
@@ -681,11 +689,8 @@ def parseMessage(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("to={0}".format(jsonData.get("to")))
-        if jsonData.get("via"):
-            tags.append("via={0}".format(jsonData.get("via")))
+        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
-        tags.append("addresse={0}".format(jsonData.get("addresse")))
 
     except KeyError as e:
         logger.error(e)
@@ -700,6 +705,10 @@ def parseMessage(jsonData):
         # happens
         pass
 
+    fields.append("addresse={0}".format(jsonData.get("addresse")))
+    if jsonData.get("via"):
+        fields.append("via={0}".format(jsonData.get("via")))
+    fields.append("to={0}".format(jsonData.get("to")))
     fields.append("bid={0}".format(jsonData.get("bid", 0)))
     if jsonData.get("identifier"):
         fields.append("identifier={0}".format(jsonData.get("identifier")))
@@ -712,9 +721,13 @@ def parseMessage(jsonData):
 
 
 def parseTextString(rawText, name):
+    if len(rawText) == "\\":
+        logger.error(rawText)
     try:
         text = rawText.encode('ascii', 'ignore')
-        if text != "\\":
+        if text == "\\":
+            logger.error(text)
+        else:
             text = text.replace("\"", "\\\"")  # Remove quotes per line protocol
         textStr = ("{0}=\"{1}\"".format(name, text))
 
