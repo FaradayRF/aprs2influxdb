@@ -149,7 +149,7 @@ def parseUncompressed(jsonData):
     tagStr = ",".join(tags)
 
     try:
-        fields.append("to={0}".format(jsonData.get("to")))
+        fields.append("to=\"{0}\"".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
@@ -233,7 +233,7 @@ def parseMicE(jsonData):
 
     try:
         if jsonData.get("via"):
-            fields.append("via={0}".format(jsonData.get("via")))
+            fields.append("via=\"{0}\"".format(jsonData.get("via")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
@@ -315,10 +315,10 @@ def parseObject(jsonData):
     tagStr = ",".join(tags)
 
     try:
-        fields.append("alive={0}".format(jsonData.get("alive")))
+        fields.append("alive=\"{0}\"".format(jsonData.get("alive")))
         if jsonData.get("via"):
-            fields.append("via={0}".format(jsonData.get("via")))
-        fields.append("to={0}".format(jsonData.get("to")))
+            fields.append("via=\"{0}\"".format(jsonData.get("via")))
+        fields.append("to=\"{0}\"".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
@@ -382,8 +382,8 @@ def parseStatus(jsonData):
     tagStr = ",".join(tags)
 
     if jsonData.get("via"):
-        fields.append("via={0}".format(jsonData.get("via")))
-    fields.append("to={0}".format(jsonData.get("to")))
+        fields.append("via=\"{0}\"".format(jsonData.get("via")))
+    fields.append("to=\"{0}\"".format(jsonData.get("to")))
     fields.append(parseTextString(jsonData["status"], "status"))
 
     if jsonData.get("path"):
@@ -442,8 +442,8 @@ def parseCompressed(jsonData):
     tagStr = ",".join(tags)
 
     try:
-        fields.append("messageCapable={0}".format(jsonData.get("messagecapable")))
-        fields.append("to={0}".format(jsonData.get("to")))
+        fields.append("messageCapable=\"{0}\"".format(jsonData.get("messagecapable")))
+        fields.append("to=\"{0}\"".format(jsonData.get("to")))
         fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
         fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
         fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
@@ -526,8 +526,8 @@ def parseWX(jsonData):
 
     try:
         if jsonData.get("via"):
-            fields.append("via={0}".format(jsonData.get("via")))
-        fields.append("to={0}".format(jsonData.get("to")))
+            fields.append("via=\"{0}\"".format(jsonData.get("via")))
+        fields.append("to=\"{0}\"".format(jsonData.get("to")))
         fields.append("wxRawTimestamp={0}".format(jsonData.get("wx_raw_timestamp", 0)))
         fields.append("humidity={0}".format(jsonData.get("humidity", 0)))
         fields.append("pressure={0}".format(jsonData.get("pressure", 0)))
@@ -590,10 +590,10 @@ def parseBeacon(jsonData):
 
     tagStr = ",".join(tags)
 
-    fields.append("to={0}".format(jsonData.get("to")))
+    fields.append("to=\"{0}\"".format(jsonData.get("to")))
     if jsonData.get("via"):
-        fields.append("via={0}".format(jsonData.get("via")))
-    fields.append("to={0}".format(jsonData.get("to")))
+        fields.append("via=\"{0}\"".format(jsonData.get("via")))
+    fields.append("to=\"{0}\"".format(jsonData.get("to")))
     fields.append(parseTextString(jsonData["text"], "text"))
 
     if jsonData.get("path"):
@@ -648,11 +648,11 @@ def parseBulletin(jsonData):
         pass
 
     if jsonData.get("via"):
-        fields.append("via={0}".format(jsonData.get("via")))
-    fields.append("to={0}".format(jsonData.get("to")))
-    fields.append("bid={0}".format(jsonData.get("bid", 0)))
+        fields.append("via=\"{0}\"".format(jsonData.get("via")))
+    fields.append("to=\"{0}\"".format(jsonData.get("to")))
+    fields.append("bid=\"{0}\"".format(jsonData.get("bid", 0)))
     if jsonData.get("identifier"):
-        fields.append("identifier={0}".format(jsonData.get("identifier")))
+        fields.append("identifier=\"{0}\"".format(jsonData.get("identifier")))
     if jsonData.get("path"):
         fields.append(parsePath(jsonData.get("path")))
 
@@ -705,11 +705,11 @@ def parseMessage(jsonData):
         # happens
         pass
 
-    fields.append("addresse={0}".format(jsonData.get("addresse")))
+    fields.append("addresse=\"{0}\"".format(jsonData.get("addresse")))
     if jsonData.get("via"):
-        fields.append("via={0}".format(jsonData.get("via")))
-    fields.append("to={0}".format(jsonData.get("to")))
-    fields.append("bid={0}".format(jsonData.get("bid", 0)))
+        fields.append("via=\"{0}\"".format(jsonData.get("via")))
+    fields.append("to=\"{0}\"".format(jsonData.get("to")))
+    fields.append("bid=\"{0}\"".format(jsonData.get("bid", 0)))
     if jsonData.get("identifier"):
         fields.append("identifier={0}".format(jsonData.get("identifier")))
     if jsonData.get("path"):
