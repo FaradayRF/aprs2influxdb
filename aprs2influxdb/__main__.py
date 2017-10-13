@@ -781,6 +781,10 @@ def callback(packet):
             logger.error(e)
             logger.error(packet)
 
+        except influxdb.exceptions.InfluxDBServerError as e:
+            logger.error(e)
+            logger.error(packet)
+
 
 def connectInfluxDB():
     """Connect to influxdb database with configuration values"""
