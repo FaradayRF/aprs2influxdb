@@ -171,7 +171,12 @@ def parseUncompressed(jsonData):
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "comment" in jsonData:
-            fields.append(parseTextString(jsonData.get("comment"), "comment"))
+            comment = parseTextString(jsonData.get("comment"), "comment")
+            if len(jsonData.get("comment")) > 0:
+                pass
+                fields.append(comment)
+            else:
+                pass
         fields = parseTelemetry(jsonData, fields)
 
     except KeyError as e:
@@ -720,23 +725,23 @@ def parseMessage(jsonData):
 
 
 def parseTextString(rawText, name):
-    if len(rawText) == "\\":
-        logger.error(rawText)
-    try:
-        text = rawText.encode('ascii', 'ignore')
-        if text == "\\":
-            logger.error(text)
-        else:
-            text = text.replace("\"", "\\\"")  # Remove quotes per line protocol
-        textStr = ("{0}=\"{1}\"".format(name, text))
+    if len(rawText) > 0:
+        try:
+            text = rawText.encode('ascii', 'replace')
+            text = text.replace("\'", "\\\'")
+            text = text.replace("\"", "\\\"")
+            textStr = ("{0}=\"{1}\"".format(name, text))
 
-    except UnicodeError as e:
-        logger.error(e)
+        except UnicodeError as e:
+            logger.error(e)
 
-    except TypeError as e:
-        logger.error(e)
+        except TypeError as e:
+            logger.error(e)
 
-    return textStr
+        return textStr
+
+    else:
+        return rawText
 
 
 def parsePath(path):
