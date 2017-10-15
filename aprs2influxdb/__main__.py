@@ -98,7 +98,6 @@ def parseWeather(jsonData, fieldList):
         items = jsonData.get("weather")
         for key in wxFields:
             if key in items:
-                logger.warning("{0}={1}".format(key,items.get(key)))
                 fieldList.append("{0}={1}".format(key,items.get(key)))
     return fieldList
 
@@ -596,7 +595,7 @@ def parseBeacon(jsonData):
                 fields.append(comment)
             else:
                 pass
-            
+
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
         pass
