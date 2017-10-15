@@ -442,43 +442,29 @@ def parseCompressed(jsonData):
 
     tagStr = ",".join(tags)
 
+    fieldNumKeys = ["latitude","longitude","gpsfixstatus","altitude"]
+    fieldTextKeys = ["to", "messagecapable"]
+    fieldTelemetryKeys = ["seq","bits"]
+
     try:
-        #fields.append("messageCapable=\"{0}\"".format(jsonData.get("messagecapable")))
-        fields.append("to=\"{0}\"".format(jsonData.get("to")))
-        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
-        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
-        fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
-        fields.append("gpsFixStatus={0}".format(jsonData.get("gpsfixstatus", 0)))
-        if jsonData.get("path"):
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
-
-    except KeyError as e:
-        logger.error(e)
-
-    try:
-        if jsonData["telemetry"]["seq"]:
-            fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
-            fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
-            fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
-            fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
-            fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
-            fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-            fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
-
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
-
-    try:
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
                 fields.append(comment)
             else:
                 pass
+        fields = parseTelemetry(jsonData, fields)
 
-    except KeyError:
-        # Comment fields often are not present so just pass
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
         pass
 
     fieldsStr = ",".join(fields)
