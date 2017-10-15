@@ -92,6 +92,16 @@ def parseTelemetry(jsonData, fieldList):
                 fieldList.append("analog{0}={1}".format(analog + 1,values[analog]))
     return fieldList
 
+def parseWeather(jsonData, fieldList):
+    wxFields = ["humidity","pressure","rain_1h","rain_24h","rain_since_midnight","temperature","wind_direction","wind_gust", "wind_speed"]
+    if "weather" in jsonData:
+        items = jsonData.get("weather")
+        for key in wxFields:
+            if key in items:
+                logger.warning("{0}={1}".format(key,items.get(key)))
+                fieldList.append("{0}={1}".format(key,items.get(key)))
+    return fieldList
+
 def parseUncompressed(jsonData):
     """Parse uncompressed APRS packets into influxedb line protocol
 
@@ -507,7 +517,6 @@ def parseWX(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -515,28 +524,15 @@ def parseWX(jsonData):
 
     tagStr = ",".join(tags)
 
+    fieldTextKeys = ["to", "via", "wx_raw_timestamp"]
+
     try:
-        if jsonData.get("via"):
-            fields.append("via=\"{0}\"".format(jsonData.get("via")))
-        fields.append("to=\"{0}\"".format(jsonData.get("to")))
-        fields.append("wxRawTimestamp={0}".format(jsonData.get("wx_raw_timestamp", 0)))
-        fields.append("humidity={0}".format(jsonData.get("humidity", 0)))
-        fields.append("pressure={0}".format(jsonData.get("pressure", 0)))
-        fields.append("rain1h={0}".format(jsonData.get("rain_1h", 0)))
-        fields.append("rain24h={0}".format(jsonData.get("rain_24h", 0)))
-        fields.append("rainSinceMidnight={0}".format(jsonData.get("rain_since_midnight", 0)))
-        fields.append("temperature={0}".format(jsonData.get("temperature", 0)))
-        fields.append("windDirection={0}".format(jsonData.get("wind_direction", 0)))
-        fields.append("windGust={0}".format(jsonData.get("wind_gust", 0)))
-        fields.append("windSpeed={0}".format(jsonData.get("wind_speed", 0)))
-        if jsonData.get("path"):
+        fields = parseWeather(jsonData, fields)
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
-
-    except KeyError as e:
-        logger.error("KeyError: {0}, Object Packet".format(e))
-        logger.error(jsonData)
-
-    try:
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
@@ -544,8 +540,8 @@ def parseWX(jsonData):
             else:
                 pass
 
-    except KeyError:
-        # Comment fields often are not present so just pass
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
         pass
 
     fieldsStr = ",".join(fields)
@@ -585,19 +581,39 @@ def parseBeacon(jsonData):
 
     tagStr = ",".join(tags)
 
-    fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    if jsonData.get("via"):
-        fields.append("via=\"{0}\"".format(jsonData.get("via")))
-    fields.append("to=\"{0}\"".format(jsonData.get("to")))
 
-    text = parseTextString(jsonData["text"], "text")
-    if len(jsonData.get("text")) > 0:
-        fields.append(text)
-    else:
+    fieldTextKeys = ["to", "via"]
+
+    try:
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
+            fields.append(parsePath(jsonData.get("path")))
+        if "text" in jsonData:
+            comment = parseTextString(jsonData.get("text"), "text")
+            if len(jsonData.get("text")) > 0:
+                fields.append(comment)
+            else:
+                pass
+            
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
         pass
 
-    if jsonData.get("path"):
-        fields.append(parsePath(jsonData.get("path")))
+    # fields.append("to=\"{0}\"".format(jsonData.get("to")))
+    # if jsonData.get("via"):
+    #     fields.append("via=\"{0}\"".format(jsonData.get("via")))
+    # fields.append("to=\"{0}\"".format(jsonData.get("to")))
+    #
+    # text = parseTextString(jsonData["text"], "text")
+    # if len(jsonData.get("text")) > 0:
+    #     fields.append(text)
+    # else:
+    #     pass
+    #
+    # if jsonData.get("path"):
+    #     fields.append(parsePath(jsonData.get("path")))
 
     fieldsStr = ",".join(fields)
 
