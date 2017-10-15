@@ -308,38 +308,29 @@ def parseObject(jsonData):
 
     tagStr = ",".join(tags)
 
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp"]
+    fieldTextKeys = ["alive", "via", "to", "raw_timestamp", "object_format", "object_name"]
+
     try:
-        fields.append("alive=\"{0}\"".format(jsonData.get("alive")))
-        if jsonData.get("via"):
-            fields.append("via=\"{0}\"".format(jsonData.get("via")))
-        fields.append("to=\"{0}\"".format(jsonData.get("to")))
-        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
-        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
-        fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
-        fields.append("speed={0}".format(jsonData.get("speed", 0)))
-        fields.append("course={0}".format(jsonData.get("course", 0)))
-        fields.append("rawTimestamp=\"{0}\"".format(jsonData.get("raw_timestamp", 0)))
-        fields.append("timestamp={0}".format(jsonData.get("timestamp", 0)))
-        fields.append("objectFormat=\"{0}\"".format(jsonData.get("object_format")))
-        fields.append("objectName=\"{0}\"".format(jsonData.get("object_name")))
-        if jsonData.get("path"):
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
-
-    except KeyError as e:
-        logger.error("KeyError: {0}, Object Packet".format(e))
-        logger.error(jsonData)
-
-    try:
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
                 fields.append(comment)
             else:
                 pass
+        fields = parseTelemetry(jsonData, fields)
 
-    except KeyError:
-        # Comment fields often are not present so just pass
-        pass
+    except KeyError as e:
+        logger.error("KeyError: {0}, object Packet".format(e))
+        logger.error(jsonData)
 
     fieldsStr = ",".join(fields)
 
