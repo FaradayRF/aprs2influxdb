@@ -173,7 +173,6 @@ def parseUncompressed(jsonData):
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
-                pass
                 fields.append(comment)
             else:
                 pass
@@ -254,8 +253,12 @@ def parseMicE(jsonData):
         logger.error(jsonData)
 
     try:
-        if jsonData["comment"]:
-            fields.append(parseTextString(jsonData["comment"], "comment"))
+        if "comment" in jsonData:
+            comment = parseTextString(jsonData.get("comment"), "comment")
+            if len(jsonData.get("comment")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -340,8 +343,12 @@ def parseObject(jsonData):
         logger.error(jsonData)
 
     try:
-        if jsonData["comment"]:
-            fields.append(parseTextString(jsonData["comment"], "comment"))
+        if "comment" in jsonData:
+            comment = parseTextString(jsonData.get("comment"), "comment")
+            if len(jsonData.get("comment")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -388,7 +395,11 @@ def parseStatus(jsonData):
     if jsonData.get("via"):
         fields.append("via=\"{0}\"".format(jsonData.get("via")))
     fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    fields.append(parseTextString(jsonData["status"], "status"))
+    status = parseTextString(jsonData["status"], "status")
+    if len(jsonData.get("status")) > 0:
+        fields.append(status)
+    else:
+        pass
 
     if jsonData.get("path"):
         fields.append(parsePath(jsonData.get("path")))
@@ -473,8 +484,12 @@ def parseCompressed(jsonData):
         pass
 
     try:
-        if jsonData["comment"]:
-            fields.append(parseTextString(jsonData["comment"], "comment"))
+        if "comment" in jsonData:
+            comment = parseTextString(jsonData.get("comment"), "comment")
+            if len(jsonData.get("comment")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -550,8 +565,12 @@ def parseWX(jsonData):
         logger.error(jsonData)
 
     try:
-        if jsonData["comment"]:
-            fields.append(parseTextString(jsonData["comment"], "comment"))
+        if "comment" in jsonData:
+            comment = parseTextString(jsonData.get("comment"), "comment")
+            if len(jsonData.get("comment")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError:
         # Comment fields often are not present so just pass
@@ -598,7 +617,12 @@ def parseBeacon(jsonData):
     if jsonData.get("via"):
         fields.append("via=\"{0}\"".format(jsonData.get("via")))
     fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    fields.append(parseTextString(jsonData["text"], "text"))
+
+    text = parseTextString(jsonData["text"], "text")
+    if len(jsonData.get("text")) > 0:
+        fields.append(text)
+    else:
+        pass
 
     if jsonData.get("path"):
         fields.append(parsePath(jsonData.get("path")))
@@ -644,8 +668,11 @@ def parseBulletin(jsonData):
     tagStr = ",".join(tags)
 
     try:
-        if jsonData["message_text"]:
-            fields.append(parseTextString(jsonData["message_text"], "messageText"))
+        text = parseTextString(jsonData["message_text"], "messageText")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(text)
+        else:
+            pass
 
     except KeyError:
         # happens
@@ -702,8 +729,11 @@ def parseMessage(jsonData):
     tagStr = ",".join(tags)
 
     try:
-        if jsonData["message_text"]:
-            fields.append(parseTextString(jsonData["message_text"], "messageText"))
+        text = parseTextString(jsonData["message_text"], "messageText")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(text)
+        else:
+            pass
 
     except KeyError:
         # happens
@@ -728,6 +758,7 @@ def parseTextString(rawText, name):
     if len(rawText) > 0:
         try:
             text = rawText.encode('ascii', 'replace')
+            text = text.replace("\\", "\\\\")
             text = text.replace("\'", "\\\'")
             text = text.replace("\"", "\\\"")
             textStr = ("{0}=\"{1}\"".format(name, text))
