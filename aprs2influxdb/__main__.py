@@ -147,45 +147,76 @@ def parseUncompressed(jsonData):
         logger.error(e)
 
     tagStr = ",".join(tags)
+    fieldNumKeys = ["latitude","posambiguity","altitude","speed"]
+    fieldTextKeys = ["to"]
+    fieldTelemetryKeys = ["seq","bits"]
 
     try:
-        fields.append("to=\"{0}\"".format(jsonData.get("to")))
-        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
-        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
-        fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
-        fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
-        fields.append("speed={0}".format(jsonData.get("speed", 0)))
-        if jsonData.get("path"):
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
+        if "comment" in jsonData:
+            fields.append(parseTextString(jsonData.get("comment"), "comment"))
+        if "telemetry" in jsonData:
+            items = jsonData.get("telemetry")
+            if "bits" in items:
+                fields.append("bits={0}".format(items.get("bits")))
+            if "vals" in items:
+                values = items.get("vals")
+                for analog in range(5):
+                    logger.warning("analog{0}={1}".format(analog + 1,values[analog]))
+                    fields.append("analog{0}={1}".format(analog + 1,values[analog]))
+
+
+    # try:
+    #     fields.append("to=\"{0}\"".format(jsonData.get("to")))
+    #     fields.append("latitude={0}".format(jsonData.get("latitude")))
+    #     fields.append("longitude={0}".format(jsonData.get("longitude")))
+    #     fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity")))
+    #     fields.append("altitude={0}".format(jsonData.get("altitude")))
+    #     fields.append("speed={0}".format(jsonData.get("speed")))
+    #     if jsonData.get("path"):
+    #         fields.append(parsePath(jsonData.get("path")))
 
     except KeyError as e:
         logger.error(e)
 
-    try:
-        if jsonData["telemetry"]["seq"]:
-            fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
-            fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
-            fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
-            fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
-            fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
-            fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-            fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
+    except ValueError as e:
+        logger.error(e)
 
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
+    except StandardError as e:
+        logger.error(e)
 
-    try:
-        if jsonData["comment"]:
-            fields.append(parseTextString(jsonData["comment"], "comment"))
+    # try:
+    #     if jsonData["telemetry"]["seq"]:
+    #         fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
+    #         fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
+    #         fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
+    #         fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
+    #         fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
+    #         fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
+    #         fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
 
-    except KeyError:
-        # Comment fields often are not present so just pass
-        pass
+    # except KeyError as e:
+    #     # Expect many KeyErrors for stations not sending telemetry
+    #     pass
+
+    # try:
+    #     if jsonData["comment"]:
+    #         fields.append(parseTextString(jsonData["comment"], "comment"))
+
+    # except KeyError:
+    #     # Comment fields often are not present so just pass
+    #     pass
 
     fieldsStr = ",".join(fields)
 
-    logger.warning
+    #logger.warning(measurement + "," + tagStr + " " + fieldsStr)
     return measurement + "," + tagStr + " " + fieldsStr
 
 
@@ -778,12 +809,13 @@ def callback(packet):
             logger.error(packet)
 
         except influxdb.exceptions.InfluxDBClientError as e:
+            logger.error(packet["raw"])
             logger.error(e)
-            logger.error(packet)
 
         except influxdb.exceptions.InfluxDBServerError as e:
+            logger.error(packet["raw"])
             logger.error(e)
-            logger.error(packet)
+
 
 
 def connectInfluxDB():
