@@ -640,25 +640,34 @@ def parseBulletin(jsonData):
 
     tagStr = ",".join(tags)
 
+    fieldNumKeys = ["bid"]
+    fieldTextKeys = ["to"]
+
     try:
-        text = parseTextString(jsonData["message_text"], "messageText")
-        if len(jsonData.get("message_text")) > 0:
-            fields.append(text)
-        else:
-            pass
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
+            fields.append(parsePath(jsonData.get("path")))
+        if "message_text" in jsonData:
+            message = parseTextString(jsonData.get("message_text"), "message_text")
+            if len(jsonData.get("message_text")) > 0:
+                fields.append(message)
+            else:
+                pass
+        if "identifier" in jsonData:
+            identifier = parseTextString(jsonData.get("identifier"), "identifier")
+            if len(jsonData.get("identifier")) > 0:
+                fields.append(identifier)
+            else:
+                pass
 
-    except KeyError:
-        # happens
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
         pass
-
-    if jsonData.get("via"):
-        fields.append("via=\"{0}\"".format(jsonData.get("via")))
-    fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    fields.append("bid=\"{0}\"".format(jsonData.get("bid", 0)))
-    if jsonData.get("identifier"):
-        fields.append("identifier=\"{0}\"".format(jsonData.get("identifier")))
-    if jsonData.get("path"):
-        fields.append(parsePath(jsonData.get("path")))
 
     fieldsStr = ",".join(fields)
 
@@ -701,26 +710,34 @@ def parseMessage(jsonData):
 
     tagStr = ",".join(tags)
 
+    fieldNumKeys = ["msgNo"]
+    fieldTextKeys = ["to", "via", "addresse"]
+
     try:
-        text = parseTextString(jsonData["message_text"], "messageText")
-        if len(jsonData.get("message_text")) > 0:
-            fields.append(text)
-        else:
-            pass
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
+            fields.append(parsePath(jsonData.get("path")))
+        if "message_text" in jsonData:
+            message = parseTextString(jsonData.get("message_text"), "message_text")
+            if len(jsonData.get("message_text")) > 0:
+                fields.append(message)
+            else:
+                pass
+        if "identifier" in jsonData:
+            identifier = parseTextString(jsonData.get("identifier"), "identifier")
+            if len(jsonData.get("identifier")) > 0:
+                fields.append(identifier)
+            else:
+                pass
 
-    except KeyError:
-        # happens
+    except KeyError as e:
+        # Expect many KeyErrors for stations not sending telemetry
         pass
-
-    fields.append("addresse=\"{0}\"".format(jsonData.get("addresse")))
-    if jsonData.get("via"):
-        fields.append("via=\"{0}\"".format(jsonData.get("via")))
-    fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    fields.append("bid=\"{0}\"".format(jsonData.get("bid", 0)))
-    if jsonData.get("identifier"):
-        fields.append("identifier={0}".format(jsonData.get("identifier")))
-    if jsonData.get("path"):
-        fields.append(parsePath(jsonData.get("path")))
 
     fieldsStr = ",".join(fields)
 
