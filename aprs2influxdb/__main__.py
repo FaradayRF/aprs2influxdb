@@ -185,7 +185,6 @@ def parseUncompressed(jsonData):
 
     fieldsStr = ",".join(fields)
 
-    logger.warning(measurement + "," + tagStr + " " + fieldsStr)
     return measurement + "," + tagStr + " " + fieldsStr
 
 
