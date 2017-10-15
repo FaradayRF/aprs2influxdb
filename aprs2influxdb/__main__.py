@@ -157,7 +157,7 @@ def parseUncompressed(jsonData):
         logger.error(e)
 
     tagStr = ",".join(tags)
-    fieldNumKeys = ["latitude","posambiguity","altitude","speed"]
+    fieldNumKeys = ["latitude","longitude","posambiguity","altitude","speed"]
     fieldTextKeys = ["to"]
     fieldTelemetryKeys = ["seq","bits"]
 
@@ -234,42 +234,29 @@ def parseMicE(jsonData):
 
     tagStr = ",".join(tags)
 
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits"]
+    fieldTextKeys = ["via", "to", "mtype"]
+
     try:
-        if jsonData.get("via"):
-            fields.append("via=\"{0}\"".format(jsonData.get("via")))
-        fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
-        fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
-        fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
-        fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
-        fields.append("speed={0}".format(jsonData.get("speed", 0)))
-        fields.append("course={0}".format(jsonData.get("course", 0)))
-        fields.append("mbits={0}".format(jsonData.get("mbits", 0)))
-        fields.append("mtype=\"{0}\"".format(jsonData.get("mtype", 0)))
-        if jsonData.get("path"):
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
-
-    except KeyError as e:
-        logger.error("KeyError: {0}, Mic-E Packet".format(e))
-        logger.error(jsonData)
-
-    try:
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
                 fields.append(comment)
             else:
                 pass
+        fields = parseTelemetry(jsonData, fields)
 
-    except KeyError:
-        # Comment fields often are not present so just pass
-        pass
-
-    try:
-        dest = "dest=\"{0}\"".format(jsonData.get("to"))
-        fields.append(dest)
-
-    except:
-        pass
+    except KeyError as e:
+        logger.error("KeyError: {0}, Mic-E Packet".format(e))
+        logger.error(jsonData)
 
     fieldsStr = ",".join(fields)
 
