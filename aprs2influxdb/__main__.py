@@ -600,20 +600,6 @@ def parseBeacon(jsonData):
         # Expect many KeyErrors for stations not sending telemetry
         pass
 
-    # fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    # if jsonData.get("via"):
-    #     fields.append("via=\"{0}\"".format(jsonData.get("via")))
-    # fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    #
-    # text = parseTextString(jsonData["text"], "text")
-    # if len(jsonData.get("text")) > 0:
-    #     fields.append(text)
-    # else:
-    #     pass
-    #
-    # if jsonData.get("path"):
-    #     fields.append(parsePath(jsonData.get("path")))
-
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
