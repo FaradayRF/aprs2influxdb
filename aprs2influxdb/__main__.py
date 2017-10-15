@@ -81,6 +81,16 @@ def jsonToLineProtocol(jsonData):
     # Uncomment for all other formats not yes parsed
     #logger.warning(jsonData["format"])
 
+def parseTelemetry(jsonData, fieldList):
+    if "telemetry" in jsonData:
+        items = jsonData.get("telemetry")
+        if "bits" in items:
+            fieldList.append("bits={0}".format(items.get("bits")))
+        if "vals" in items:
+            values = items.get("vals")
+            for analog in range(5):
+                fieldList.append("analog{0}={1}".format(analog + 1,values[analog]))
+    return fieldList
 
 def parseUncompressed(jsonData):
     """Parse uncompressed APRS packets into influxedb line protocol
@@ -162,14 +172,7 @@ def parseUncompressed(jsonData):
             fields.append(parsePath(jsonData.get("path")))
         if "comment" in jsonData:
             fields.append(parseTextString(jsonData.get("comment"), "comment"))
-        if "telemetry" in jsonData:
-            items = jsonData.get("telemetry")
-            if "bits" in items:
-                fields.append("bits={0}".format(items.get("bits")))
-            if "vals" in items:
-                values = items.get("vals")
-                for analog in range(5):
-                    fields.append("analog{0}={1}".format(analog + 1,values[analog]))
+        fields = parseTelemetry(jsonData, fields)
 
     except KeyError as e:
         logger.error(e)
