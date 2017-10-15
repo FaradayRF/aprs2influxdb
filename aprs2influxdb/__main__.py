@@ -362,7 +362,6 @@ def parseStatus(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -370,17 +369,26 @@ def parseStatus(jsonData):
 
     tagStr = ",".join(tags)
 
-    if jsonData.get("via"):
-        fields.append("via=\"{0}\"".format(jsonData.get("via")))
-    fields.append("to=\"{0}\"".format(jsonData.get("to")))
-    status = parseTextString(jsonData["status"], "status")
-    if len(jsonData.get("status")) > 0:
-        fields.append(status)
-    else:
-        pass
+    fieldTextKeys = ["via", "to"]
 
-    if jsonData.get("path"):
-        fields.append(parsePath(jsonData.get("path")))
+    try:
+        for key in fieldTextKeys:
+            if key in jsonData:
+                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+        if "path" in jsonData:
+            fields.append(parsePath(jsonData.get("path")))
+        fields = parseTelemetry(jsonData, fields)
+
+        if "status" in jsonData:
+            comment = parseTextString(jsonData.get("status"), "status")
+            if len(jsonData.get("status")) > 0:
+                fields.append(comment)
+            else:
+                pass
+
+    except KeyError as e:
+        logger.error("KeyError: {0}, object Packet".format(e))
+        logger.error(jsonData)
 
     fieldsStr = ",".join(fields)
 
