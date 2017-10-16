@@ -410,6 +410,21 @@ def parseObject(jsonData):
                 fields.append(comment)
             else:
                 pass
+        # Extract symbol from packet
+        if "symbol" in jsonData:
+            comment = parseTextString(jsonData.get("symbol"), "symbol")
+            if len(jsonData.get("symbol")) > 0:
+                fields.append(comment)
+            else:
+                pass
+        # Extract symbol from packet
+        if "symbol_table" in jsonData:
+            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+            if len(jsonData.get("symbol_table")) > 0:
+                fields.append(comment)
+            else:
+                pass
+
 
     except KeyError as e:
         logger.error("KeyError: {0}, object Packet".format(e))
