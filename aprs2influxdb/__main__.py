@@ -203,6 +203,13 @@ def parseUncompressed(jsonData):
                 fields.append(comment)
             else:
                 pass
+        # Extract symbol from packet
+        if "symbol_table" in jsonData:
+            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+            if len(jsonData.get("symbol_table")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
         # Parse telemetry data if present
         fields = parseTelemetry(jsonData, fields)
