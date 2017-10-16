@@ -113,8 +113,8 @@ def parseUncompressed(jsonData):
     # Schema
     # tag = from
     # field = to
-    # field = symbol_table* (SKIPPED)
-    # field = symbol* (SKIPPED)
+    # field = symbol_table
+    # field = symbol
     # tag = format
     # field = via
     # field = messagecapable
@@ -243,8 +243,8 @@ def parseMicE(jsonData):
     # Schema
     # measurement = packet
     # tag = from
-    # field = symbol_table* (SKIPPED)
-    # field = symbol* (SKIPPED)
+    # field = symbol_table
+    # field = symbol
     # tag = format
     # field = via
     # field = latitude
@@ -301,6 +301,20 @@ def parseMicE(jsonData):
         if "raw" in jsonData:
             comment = parseTextString(jsonData.get("raw"), "raw")
             if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
+        # Extract symbol from packet
+        if "symbol" in jsonData:
+            comment = parseTextString(jsonData.get("symbol"), "symbol")
+            if len(jsonData.get("symbol")) > 0:
+                fields.append(comment)
+            else:
+                pass
+        # Extract symbol from packet
+        if "symbol_table" in jsonData:
+            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+            if len(jsonData.get("symbol_table")) > 0:
                 fields.append(comment)
             else:
                 pass
