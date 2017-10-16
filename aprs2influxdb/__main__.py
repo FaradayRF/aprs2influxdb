@@ -81,6 +81,7 @@ def jsonToLineProtocol(jsonData):
     # Uncomment for all other formats not yes parsed
     #logger.warning(jsonData["format"])
 
+
 def parseTelemetry(jsonData, fieldList):
     if "telemetry" in jsonData:
         items = jsonData.get("telemetry")
@@ -91,17 +92,19 @@ def parseTelemetry(jsonData, fieldList):
         if "vals" in items:
             values = items.get("vals")
             for analog in range(5):
-                fieldList.append("analog{0}={1}".format(analog + 1,values[analog]))
+                fieldList.append("analog{0}={1}".format(analog + 1, values[analog]))
     return fieldList
 
+
 def parseWeather(jsonData, fieldList):
-    wxFields = ["humidity","pressure","rain_1h","rain_24h","rain_since_midnight","temperature","wind_direction","wind_gust", "wind_speed"]
+    wxFields = ["humidity", "pressure", "rain_1h", "rain_24h", "rain_since_midnight", "temperature", "wind_direction", "wind_gust", "wind_speed"]
     if "weather" in jsonData:
         items = jsonData.get("weather")
         for key in wxFields:
             if key in items:
-                fieldList.append("{0}={1}".format(key,items.get(key)))
+                fieldList.append("{0}={1}".format(key, items.get(key)))
     return fieldList
+
 
 def parseUncompressed(jsonData):
     """Parse uncompressed APRS packets into influxedb line protocol
@@ -153,7 +156,6 @@ def parseUncompressed(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-
     try:
         tags.append("from={0}".format(jsonData.get("from")))
         tags.append("format={0}".format(jsonData.get("format")))
@@ -164,19 +166,18 @@ def parseUncompressed(jsonData):
     tagStr = ",".join(tags)
 
     # Create field key lists to iterate through
-    fieldNumKeys = ["latitude","longitude","posambiguity","altitude","speed", "course"]
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course"]
     fieldTextKeys = ["to", "messagecapable", "phg", "rng", "raw_timestamp", "via"]
-    fieldTelemetryKeys = ["seq","bits"]
 
     # Extract fields from packet
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
 
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
 
         # Extract path and create string from list
         if "path" in jsonData:
@@ -262,7 +263,6 @@ def parseMicE(jsonData):
     # field = daodatumbyte
     # field = path
 
-
     # initialize variables
     tags = []
     fields = []
@@ -285,10 +285,10 @@ def parseMicE(jsonData):
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "comment" in jsonData:
@@ -390,10 +390,10 @@ def parseObject(jsonData):
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "comment" in jsonData:
@@ -424,7 +424,6 @@ def parseObject(jsonData):
                 fields.append(comment)
             else:
                 pass
-
 
     except KeyError as e:
         logger.error("KeyError: {0}, object Packet".format(e))
@@ -476,10 +475,10 @@ def parseStatus(jsonData):
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         fields = parseTelemetry(jsonData, fields)
@@ -566,17 +565,16 @@ def parseCompressed(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldNumKeys = ["latitude","longitude","gpsfixstatus","altitude", "speed", "course", "timestamp"]
+    fieldNumKeys = ["latitude", "longitude", "gpsfixstatus", "altitude", "speed", "course", "timestamp"]
     fieldTextKeys = ["to", "messagecapable", "phg", "via"]
-    fieldTelemetryKeys = ["seq","bits"]
 
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "comment" in jsonData:
@@ -669,7 +667,7 @@ def parseWX(jsonData):
         fields = parseWeather(jsonData, fields)
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "comment" in jsonData:
@@ -712,7 +710,6 @@ def parseBeacon(jsonData):
     # field = path
     # field = raw
 
-
     # initialize variables
     tags = []
     fields = []
@@ -729,13 +726,12 @@ def parseBeacon(jsonData):
 
     tagStr = ",".join(tags)
 
-
     fieldTextKeys = ["to", "via"]
 
     try:
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "text" in jsonData:
@@ -802,10 +798,10 @@ def parseBulletin(jsonData):
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
         if "message_text" in jsonData:
@@ -879,10 +875,10 @@ def parseMessage(jsonData):
     try:
         for key in fieldNumKeys:
             if key in jsonData:
-                fields.append("{0}={1}".format(key,jsonData.get(key)))
+                fields.append("{0}={1}".format(key, jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
 
@@ -981,7 +977,6 @@ def callback(packet):
         except influxdb.exceptions.InfluxDBServerError as e:
             logger.error(packet["raw"])
             logger.error(e)
-
 
 
 def connectInfluxDB():
