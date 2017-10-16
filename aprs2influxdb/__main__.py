@@ -272,8 +272,8 @@ def parseMicE(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits", "daodatumbyte"]
-    fieldTextKeys = ["via", "to", "mtype"]
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits"]
+    fieldTextKeys = ["via", "to", "mtype", "daodatumbyte"]
 
     try:
         for key in fieldNumKeys:
