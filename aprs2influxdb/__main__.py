@@ -111,47 +111,41 @@ def parseUncompressed(jsonData):
     """
     # Converts aprslib JSON to influxdb line protocol
     # Schema
-    # measurement = packet
-    # tag = from*
-    # field = to*
-    # field = symbolTable
-    # field = symbol
-    # tag = format*
-    # field = objectFormat
-    # field = objectName
-    # field = via
-    # field = messageCapable
-    # field = timestamp
-    # field = rawTimestamp
-    # field = latitude*
-    # field = longitude*
-    # field = posAmbiguity*
-    # field = altitude*
+    # tag = from
+    # field = to
+    # field = symbol_table*
+    # field = symbol*
+    # tag = format
+    # field = via*
+    # field = messagecapable
+    # field = latitude
+    # field = longitude
+    # field = posAmbiguity
+    # field = altitude
+    # field = raw*
     # field = speed
     # field = course
-    # field = seq*
+    # field = raw_timestamp*
+    # field = seq
     # field = analog1*
     # field = analog2*
     # field = analog3*
     # field = analog4*
     # field = analog5*
-    # field = bits*
-    # field = comment*
-    # field = path*
-    # field = mbits
-    # field = mtype
-    # field = pressure
-    # field = rain1H
-    # field = rain24h
-    # field = rainSinceMidnight
-    # field = temperature
-    # field = windDirection
-    # field = windGust
-    # field = windSpeed
-    # field = wxRawTimestamp
-    # field = status
-    # field = addresse
-    # field = messageText
+    # field = bits
+    # field = phg
+    # field = rng
+    # field = comment
+    # field = path
+    # field = pressure*
+    # field = rain_1h*
+    # field = rain_24h*
+    # field = rain_since_midnight*
+    # field = temperature*
+    # field = wind_direction*
+    # field = wind_gust*
+    # field = wind_speed*
+    # field = wx_raw_timestamp*
 
     # initialize variables
     tags = []
@@ -168,26 +162,39 @@ def parseUncompressed(jsonData):
         logger.error(e)
 
     tagStr = ",".join(tags)
-    fieldNumKeys = ["latitude","longitude","posambiguity","altitude","speed"]
-    fieldTextKeys = ["to"]
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["latitude","longitude","posambiguity","altitude","speed", "course"]
+    fieldTextKeys = ["to", "messagecapable", "phg", "rng"]
     fieldTelemetryKeys = ["seq","bits"]
 
+    # Extract fields from packet
     try:
         for key in fieldNumKeys:
             if key in jsonData:
                 fields.append("{0}={1}".format(key,jsonData.get(key)))
+
         for key in fieldTextKeys:
             if key in jsonData:
                 fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
+
+        # Extract path and create string from list
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
+            
+        # Extract comment from packet
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
                 fields.append(comment)
             else:
                 pass
+
+        # Parse telemetry data if present
         fields = parseTelemetry(jsonData, fields)
+
+        # Parse weather data if present
+        fields = parseWeather(jsonData, fields)
 
     except KeyError as e:
         logger.error(e)
@@ -198,8 +205,10 @@ def parseUncompressed(jsonData):
     except StandardError as e:
         logger.error(e)
 
+    # Combine all fields into a valid line protocol string
     fieldsStr = ",".join(fields)
 
+    # Combine final valid line protocol string
     return measurement + "," + tagStr + " " + fieldsStr
 
 
