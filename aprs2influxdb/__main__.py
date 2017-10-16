@@ -116,7 +116,7 @@ def parseUncompressed(jsonData):
     # field = symbol_table* (SKIPPED)
     # field = symbol* (SKIPPED)
     # tag = format
-    # field = via*
+    # field = via
     # field = messagecapable
     # field = latitude
     # field = longitude
@@ -125,26 +125,26 @@ def parseUncompressed(jsonData):
     # field = raw*
     # field = speed
     # field = course
-    # field = raw_timestamp*
+    # field = raw_timestamp
     # field = seq
-    # field = analog1*
-    # field = analog2*
-    # field = analog3*
-    # field = analog4*
-    # field = analog5*
+    # field = analog1
+    # field = analog2
+    # field = analog3
+    # field = analog4
+    # field = analog5
     # field = bits
     # field = phg
     # field = rng
     # field = comment
     # field = path
-    # field = pressure*
-    # field = rain_1h*
-    # field = rain_24h*
-    # field = rain_since_midnight*
-    # field = temperature*
-    # field = wind_direction*
-    # field = wind_gust*
-    # field = wind_speed*
+    # field = pressure
+    # field = rain_1h
+    # field = rain_24h
+    # field = rain_since_midnight
+    # field = temperature
+    # field = wind_direction
+    # field = wind_gust
+    # field = wind_speed
 
     # initialize variables
     tags = []
@@ -152,6 +152,7 @@ def parseUncompressed(jsonData):
 
     # Set measurement to "packet"
     measurement = "packet"
+
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
@@ -164,7 +165,7 @@ def parseUncompressed(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude","longitude","posambiguity","altitude","speed", "course"]
-    fieldTextKeys = ["to", "messagecapable", "phg", "rng"]
+    fieldTextKeys = ["to", "messagecapable", "phg", "rng", "raw_timestamp", "via"]
     fieldTelemetryKeys = ["seq","bits"]
 
     # Extract fields from packet
