@@ -113,8 +113,8 @@ def parseUncompressed(jsonData):
     # Schema
     # tag = from
     # field = to
-    # field = symbol_table*
-    # field = symbol*
+    # field = symbol_table* (SKIPPED)
+    # field = symbol* (SKIPPED)
     # tag = format
     # field = via*
     # field = messagecapable
@@ -145,7 +145,6 @@ def parseUncompressed(jsonData):
     # field = wind_direction*
     # field = wind_gust*
     # field = wind_speed*
-    # field = wx_raw_timestamp*
 
     # initialize variables
     tags = []
@@ -181,7 +180,7 @@ def parseUncompressed(jsonData):
         # Extract path and create string from list
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
-            
+
         # Extract comment from packet
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
@@ -220,23 +219,27 @@ def parseMicE(jsonData):
     """
     # Converts aprslib JSON to influxdb line protocol
     # Schema
-    # measurement = packet*
-    # tag = from*
-    # field = dest*
-    # field = symbolTable
-    # field = symbol
-    # tag = format*
-    # field = via*
-    # field = latitude*
-    # field = longitude*
-    # field = posAmbiguity*
-    # field = altitude*
-    # field = speed*
-    # field = course*
-    # field = comment*
-    # field = path*
-    # field = mbits*
-    # field = mtype*
+    # measurement = packet
+    # tag = from
+    # field = symbol_table* (SKIPPED)
+    # field = symbol* (SKIPPED)
+    # tag = format
+    # field = via
+    # field = latitude
+    # field = longitude
+    # field = posambiguity
+    # field = altitude
+    # field = speed
+    # field = course
+    # field = comment
+    # field = path
+    # field = mbits
+    # field = mtype
+    # field = raw*
+    # field = to
+    # field = daodatumbyte*
+    # field = path
+
 
     # initialize variables
     tags = []
@@ -272,7 +275,6 @@ def parseMicE(jsonData):
                 fields.append(comment)
             else:
                 pass
-        fields = parseTelemetry(jsonData, fields)
 
     except KeyError as e:
         logger.error("KeyError: {0}, Mic-E Packet".format(e))
@@ -291,25 +293,36 @@ def parseObject(jsonData):
     """
     # Converts aprslib JSON to influxdb line protocol
     # Schema
-    # measurement = packet*
-    # tag = from*
+    # measurement = packet
+    # tag = from
     # field = to
-    # field = symbolTable
-    # field = symbol
-    # tag = format*
+    # field = symbol_table* (SKIPPED)
+    # field = symbol* (SKIPPED)
+    # tag = format
     # field = via
-    # field = alive*
-    # field = objectFormat*
-    # field = objectName*
-    # field = latitude*
-    # field = longitude*
-    # field = posAmbiguity*
-    # field = rawTimestamp*
-    # field = timestamp*
-    # field = speed*
-    # field = course*
-    # field = comment*
-    # field = path*
+    # field = alive
+    # field = object_format
+    # field = object_name
+    # field = latitude
+    # field = longitude
+    # field = posambiguity
+    # field = raw_timestamp
+    # field = timestamp
+    # field = speed
+    # field = course
+    # field = altitude*
+    # field = comment
+    # field = path
+    # field  = raw*
+    # field = daodatumbyte
+    # field = rng
+    # field = bits
+    # field = seq
+    # field = analog1
+    # field = analog2
+    # field = analog3
+    # field = analog4
+    # field = analog5
 
     # initialize variables
     tags = []
@@ -328,8 +341,8 @@ def parseObject(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp"]
-    fieldTextKeys = ["alive", "via", "to", "raw_timestamp", "object_format", "object_name"]
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp", "altitude"]
+    fieldTextKeys = ["alive", "via", "to", "raw_timestamp", "object_format", "object_name", "rng", "daodatumbyte"]
 
     try:
         for key in fieldNumKeys:
@@ -365,13 +378,16 @@ def parseStatus(jsonData):
     """
     # Converts aprslib JSON to influxdb line protocol
     # Schema
-    # measurement = packet*
-    # tag = from*
-    # field = to*
-    # tag = format*
-    # field = via*
-    # field = status*
-    # field = path*
+    # measurement = packet
+    # tag = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = status
+    # field = path
+    # field = timestamp
+    # field = raw*
+    # field = raw_timestamp
 
     # initialize variables
     tags = []
@@ -389,9 +405,13 @@ def parseStatus(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldTextKeys = ["via", "to"]
+    fieldNumKeys = ["timestamp"]
+    fieldTextKeys = ["via", "to", "raw_timestamp"]
 
     try:
+        for key in fieldNumKeys:
+            if key in jsonData:
+                fields.append("{0}={1}".format(key,jsonData.get(key)))
         for key in fieldTextKeys:
             if key in jsonData:
                 fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
@@ -424,26 +444,39 @@ def parseCompressed(jsonData):
     # Converts aprslib JSON to influxdb line protocol
     # Schema
     # measurement = packet
-    # tag = from*
-    # field = to*
-    # field = symbolTable
-    # field = symbol
-    # tag = format*
-    # field = via*
-    # field = messageCapable*
-    # field = latitude*
-    # field = longitude*
-    # field = gpsFixStatus*
-    # field = altitude*
-    # field = seq*
-    # field = analog1*
-    # field = analog2*
-    # field = analog3*
-    # field = analog4*
-    # field = analog5*
-    # field = bits*
-    # field = comment*
-    # field = path*
+    # tag = from
+    # field = to
+    # field = symbol_table* (SKIPPED)
+    # field = symbol* (SKIPPED)
+    # tag = format
+    # field = via
+    # field = messagecapable
+    # field = latitude
+    # field = longitude
+    # field = gpsfixstatus
+    # field = altitude
+    # field = seq
+    # field = analog1
+    # field = analog2
+    # field = analog3
+    # field = analog4
+    # field = analog5
+    # field = bits
+    # field = comment
+    # field = path
+    # field = phg
+    # field = raw*
+    # field = timestamp
+    # field = pressure
+    # field = rain_1h
+    # field = rain_24h
+    # field = rain_since_midnight
+    # field = temperature
+    # field = wind_direction
+    # field = wind_gust
+    # field = wind_speed
+    # field = speed
+    # field = course
 
     # initialize variables
     tags = []
@@ -454,7 +487,6 @@ def parseCompressed(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -462,8 +494,8 @@ def parseCompressed(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldNumKeys = ["latitude","longitude","gpsfixstatus","altitude"]
-    fieldTextKeys = ["to", "messagecapable"]
+    fieldNumKeys = ["latitude","longitude","gpsfixstatus","altitude", "speed", "course", "timestamp"]
+    fieldTextKeys = ["to", "messagecapable", "phg", "via"]
     fieldTelemetryKeys = ["seq","bits"]
 
     try:
@@ -482,6 +514,8 @@ def parseCompressed(jsonData):
             else:
                 pass
         fields = parseTelemetry(jsonData, fields)
+
+        fields = parseWeather(jsonData, fields)
 
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
@@ -505,18 +539,19 @@ def parseWX(jsonData):
     # field = to
     # tag = format
     # field = via
-    # field = wxRawTimestamp
+    # field = wx_raw_timestamp
     # field = comment
     # field = humidity
     # field = pressure
-    # field = rain1h
-    # field = rain24h
-    # field = rainSinceMidnight
+    # field = rain_1h
+    # field = rain_24h
+    # field = rain_since_midnight
     # field = temperature
-    # field = windDirection
-    # field = windGust
-    # field = windSpeed
-    # field = path*
+    # field = wind_direction
+    # field = wind_gust
+    # field = wind_speed
+    # field = path
+    # field = raw*
 
     # initialize variables
     tags = []
@@ -572,8 +607,10 @@ def parseBeacon(jsonData):
     # field = to
     # tag = format
     # field = via
-    # field = text*
-    # field = path*
+    # field = text
+    # field = path
+    # field = raw*
+
 
     # initialize variables
     tags = []
@@ -629,10 +666,11 @@ def parseBulletin(jsonData):
     # field = to
     # tag = format
     # field = via
-    # field = messageText
+    # field = message_text
     # field = bid
-    # field = identifier (empty)
-    # field = path*
+    # field = identifier
+    # field = path
+    # field = raw*
 
     # initialize variables
     tags = []
@@ -643,7 +681,6 @@ def parseBulletin(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -652,7 +689,7 @@ def parseBulletin(jsonData):
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["bid"]
-    fieldTextKeys = ["to"]
+    fieldTextKeys = ["to", "via"]
 
     try:
         for key in fieldNumKeys:
@@ -699,10 +736,11 @@ def parseMessage(jsonData):
     # tag = format
     # field = via
     # field = addresse
-    # field = messageText
-    # field = bid
-    # field = identifier (empty)
-    # field = path*
+    # field = message_text
+    # field = path
+    # field = raw*
+    # field = msgNo
+    # field = response
 
     # initialize variables
     tags = []
@@ -713,7 +751,6 @@ def parseMessage(jsonData):
 
     try:
         tags.append("from={0}".format(jsonData.get("from")))
-        #tags.append("to={0}".format(jsonData.get("to")))
         tags.append("format={0}".format(jsonData.get("format")))
 
     except KeyError as e:
@@ -733,16 +770,18 @@ def parseMessage(jsonData):
                 fields.append("{0}=\"{1}\"".format(key,jsonData.get(key)))
         if "path" in jsonData:
             fields.append(parsePath(jsonData.get("path")))
+
         if "message_text" in jsonData:
             message = parseTextString(jsonData.get("message_text"), "message_text")
             if len(jsonData.get("message_text")) > 0:
                 fields.append(message)
             else:
                 pass
-        if "identifier" in jsonData:
-            identifier = parseTextString(jsonData.get("identifier"), "identifier")
-            if len(jsonData.get("identifier")) > 0:
-                fields.append(identifier)
+
+        if "response" in jsonData:
+            message = parseTextString(jsonData.get("response"), "response")
+            if len(jsonData.get("response")) > 0:
+                fields.append(message)
             else:
                 pass
 
