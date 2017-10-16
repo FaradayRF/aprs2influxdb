@@ -84,6 +84,8 @@ def jsonToLineProtocol(jsonData):
 def parseTelemetry(jsonData, fieldList):
     if "telemetry" in jsonData:
         items = jsonData.get("telemetry")
+        if "seq" in items:
+            fieldList.append("seq={0}".format(items.get("seq")))
         if "bits" in items:
             fieldList.append("bits={0}".format(items.get("bits")))
         if "vals" in items:
