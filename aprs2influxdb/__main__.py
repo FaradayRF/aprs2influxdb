@@ -122,7 +122,7 @@ def parseUncompressed(jsonData):
     # field = longitude
     # field = posAmbiguity
     # field = altitude
-    # field = raw*
+    # field = raw
     # field = speed
     # field = course
     # field = raw_timestamp
@@ -189,6 +189,13 @@ def parseUncompressed(jsonData):
                 fields.append(comment)
             else:
                 pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
         # Parse telemetry data if present
         fields = parseTelemetry(jsonData, fields)
@@ -236,9 +243,9 @@ def parseMicE(jsonData):
     # field = path
     # field = mbits
     # field = mtype
-    # field = raw*
+    # field = raw
     # field = to
-    # field = daodatumbyte*
+    # field = daodatumbyte
     # field = path
 
 
@@ -258,7 +265,7 @@ def parseMicE(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits"]
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits", "daodatumbyte"]
     fieldTextKeys = ["via", "to", "mtype"]
 
     try:
@@ -273,6 +280,13 @@ def parseMicE(jsonData):
         if "comment" in jsonData:
             comment = parseTextString(jsonData.get("comment"), "comment")
             if len(jsonData.get("comment")) > 0:
+                fields.append(comment)
+            else:
+                pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
                 fields.append(comment)
             else:
                 pass
@@ -311,10 +325,10 @@ def parseObject(jsonData):
     # field = timestamp
     # field = speed
     # field = course
-    # field = altitude*
+    # field = altitude
     # field = comment
     # field = path
-    # field  = raw*
+    # field  = raw
     # field = daodatumbyte
     # field = rng
     # field = bits
@@ -361,6 +375,13 @@ def parseObject(jsonData):
             else:
                 pass
         fields = parseTelemetry(jsonData, fields)
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError as e:
         logger.error("KeyError: {0}, object Packet".format(e))
@@ -387,7 +408,7 @@ def parseStatus(jsonData):
     # field = status
     # field = path
     # field = timestamp
-    # field = raw*
+    # field = raw
     # field = raw_timestamp
 
     # initialize variables
@@ -423,6 +444,13 @@ def parseStatus(jsonData):
         if "status" in jsonData:
             comment = parseTextString(jsonData.get("status"), "status")
             if len(jsonData.get("status")) > 0:
+                fields.append(comment)
+            else:
+                pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
                 fields.append(comment)
             else:
                 pass
@@ -466,7 +494,7 @@ def parseCompressed(jsonData):
     # field = comment
     # field = path
     # field = phg
-    # field = raw*
+    # field = raw
     # field = timestamp
     # field = pressure
     # field = rain_1h
@@ -518,6 +546,14 @@ def parseCompressed(jsonData):
 
         fields = parseWeather(jsonData, fields)
 
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
+
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
         pass
@@ -552,7 +588,7 @@ def parseWX(jsonData):
     # field = wind_gust
     # field = wind_speed
     # field = path
-    # field = raw*
+    # field = raw
 
     # initialize variables
     tags = []
@@ -585,6 +621,13 @@ def parseWX(jsonData):
                 fields.append(comment)
             else:
                 pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
@@ -610,7 +653,7 @@ def parseBeacon(jsonData):
     # field = via
     # field = text
     # field = path
-    # field = raw*
+    # field = raw
 
 
     # initialize variables
@@ -644,6 +687,13 @@ def parseBeacon(jsonData):
                 fields.append(comment)
             else:
                 pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
@@ -671,7 +721,7 @@ def parseBulletin(jsonData):
     # field = bid
     # field = identifier
     # field = path
-    # field = raw*
+    # field = raw
 
     # initialize variables
     tags = []
@@ -713,6 +763,13 @@ def parseBulletin(jsonData):
                 fields.append(identifier)
             else:
                 pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
+            else:
+                pass
 
     except KeyError as e:
         # Expect many KeyErrors for stations not sending telemetry
@@ -739,7 +796,7 @@ def parseMessage(jsonData):
     # field = addresse
     # field = message_text
     # field = path
-    # field = raw*
+    # field = raw
     # field = msgNo
     # field = response
 
@@ -783,6 +840,13 @@ def parseMessage(jsonData):
             message = parseTextString(jsonData.get("response"), "response")
             if len(jsonData.get("response")) > 0:
                 fields.append(message)
+            else:
+                pass
+        # Extract raw from packet
+        if "raw" in jsonData:
+            comment = parseTextString(jsonData.get("raw"), "raw")
+            if len(jsonData.get("raw")) > 0:
+                fields.append(comment)
             else:
                 pass
 
