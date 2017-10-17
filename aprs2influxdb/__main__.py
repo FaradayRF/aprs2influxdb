@@ -724,6 +724,7 @@ def parseWX(jsonData):
     # Obtain weather data
     fields = parseWeather(jsonData, fields)
 
+    # Combine final valid line protocol string
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
