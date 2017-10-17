@@ -943,12 +943,24 @@ def parseMessage(jsonData):
 
 
 def parseTextString(rawText, name):
+    '''Parse text strings for invalid characters. Properly escape for
+    line protocol strings if found.
+
+    keyword arguments:
+    rawText -- String to be checked
+    name -- Name of field
+    '''
+
+    # Check if length is valid
     if len(rawText) > 0:
         try:
+            # Convert to ASCII and replace invalid characters
             text = rawText.encode('ascii', 'replace')
             text = text.replace("\\", "\\\\")
             text = text.replace("\'", "\\\'")
             text = text.replace("\"", "\\\"")
+
+            # Create valide libe protocol field string
             textStr = ("{0}=\"{1}\"".format(name, text))
 
         except UnicodeError as e:
@@ -957,9 +969,12 @@ def parseTextString(rawText, name):
         except TypeError as e:
             logger.error(e)
 
+        # Return text string if line protocol format
         return textStr
 
     else:
+        # rawText is <= 0
+        # Return text string if line protocol format
         return rawText
 
 
