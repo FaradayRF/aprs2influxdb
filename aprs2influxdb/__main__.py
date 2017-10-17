@@ -487,45 +487,53 @@ def parseStatus(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
+    # Obtain tags
     tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
+    # Join tags into comma separated string
     tagStr = ",".join(tags)
 
+    # Create field key lists to iterate through
     fieldNumKeys = ["timestamp"]
     fieldTextKeys = ["via", "to"]
 
+    # Extract number fields from packet
     for key in fieldNumKeys:
         if key in jsonData:
             fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
     for key in fieldTextKeys:
         if key in jsonData:
             fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
     if "path" in jsonData:
         fields.append(parsePath(jsonData.get("path")))
+
+    # Extract telemetry
     fields = parseTelemetry(jsonData, fields)
 
+    # Extract status
     if "status" in jsonData:
         comment = parseTextString(jsonData.get("status"), "status")
         if len(jsonData.get("status")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract raw from packet
+
+    # Extract raw packet
     if "raw" in jsonData:
         comment = parseTextString(jsonData.get("raw"), "raw")
         if len(jsonData.get("raw")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract raw_timestamp from packet
+
+    # Extract raw timestamp
     if "raw_timestamp" in jsonData:
         rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
         if len(jsonData.get("raw_timestamp")) > 0:
             fields.append(rawtimestamp)
-        else:
-            pass
 
+    # Combine final valid line protocol string
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
