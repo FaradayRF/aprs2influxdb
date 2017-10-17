@@ -684,40 +684,45 @@ def parseWX(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
+    # Obtain tags
     tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
-
+    # Join tags into comma separated string
     tagStr = ",".join(tags)
 
+    # Create field key lists to iterate through
     fieldTextKeys = ["to", "via"]
 
-    fields = parseWeather(jsonData, fields)
+    # Extract text fields from packet
     for key in fieldTextKeys:
         if key in jsonData:
             fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
     if "path" in jsonData:
         fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
     if "comment" in jsonData:
         comment = parseTextString(jsonData.get("comment"), "comment")
         if len(jsonData.get("comment")) > 0:
             fields.append(comment)
-        else:
-            pass
+
     # Extract raw from packet
     if "raw" in jsonData:
         comment = parseTextString(jsonData.get("raw"), "raw")
         if len(jsonData.get("raw")) > 0:
             fields.append(comment)
-        else:
-            pass
+
     # Extract wx_raw_timestamp from packet
     if "wx_raw_timestamp" in jsonData:
         rawtimestamp = parseTextString(jsonData.get("wx_raw_timestamp"), "wx_raw_timestamp")
         if len(jsonData.get("wx_raw_timestamp")) > 0:
             fields.append(rawtimestamp)
-        else:
-            pass
+
+    # Obtain weather data
+    fields = parseWeather(jsonData, fields)
 
     fieldsStr = ",".join(fields)
 
