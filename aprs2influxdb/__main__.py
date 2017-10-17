@@ -83,16 +83,33 @@ def jsonToLineProtocol(jsonData):
         logger.error("Packet: {0}".format(jsonData))
 
 def parseTelemetry(jsonData, fieldList):
+    '''parse telemetry from packets
+
+    Iterates through a telemetry formated packet to extra sequence, bits, and
+    values. These are placed into the fieldList which is returned at the end of
+    the function.
+
+    keyword arguments:
+    jsonData -- JSON packet from aprslib
+    fieldList -- list of field items currently parsed
+    '''
+
+    # Check for telemetry in packet
     if "telemetry" in jsonData:
         items = jsonData.get("telemetry")
+        # Extract telemetry sequency
         if "seq" in items:
             fieldList.append("seq={0}".format(items.get("seq")))
+        # Extract IO bits
         if "bits" in items:
             fieldList.append("bits={0}".format(items.get("bits")))
+        # Extra analog values
         if "vals" in items:
             values = items.get("vals")
             for analog in range(5):
                 fieldList.append("analog{0}={1}".format(analog + 1, values[analog]))
+
+    # Return fieldList with found items appended
     return fieldList
 
 
