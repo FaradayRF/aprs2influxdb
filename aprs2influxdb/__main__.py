@@ -1040,7 +1040,9 @@ def consumer(conn):
     keyword arguments:
     conn -- APRS-IS connection from aprslib
     """
+
     logger.debug("starting consumer thread")
+
     # Obtain raw APRS-IS packets and sent to callback when received
     conn.consumer(callback, immortal=True, raw=False)
 
@@ -1051,8 +1053,9 @@ def heartbeat(conn, callsign, interval):
     keyword arguments:
     conn -- APRS-IS connction from aprslib
     callsign -- Callsign of status message
-    interval -- Minutes betwee status messages
+    interval -- Minutes between status messages
     """
+
     logger.debug("Starting heartbeat thread")
     while True:
         # Create timestamp
@@ -1122,18 +1125,20 @@ def main():
                      passwd=passcode,
                      port=args.port)
 
+    # Set aprslib logger equal to aprs2influxdb logger
     AIS.logger = logger
+
+    # Connect to APRS-IS servers
     try:
         AIS.connect()
 
-    except aprslib.exceptions.LoginError as e:
-        logger.error(e)
-        logger.info("APRS Login Callsign: {0} Port: {1}".format(args.callsign, args.port))
-        sys.exit(1)
+    except aprslib.exceptions.LoginError:
+        # An error occured
+        logger.error('An aprslib LoginError occured', exc_info=True)
 
     except aprslib.exceptions.ConnectionError as e:
-        logger.error(e)
-        sys.exit(1)
+        # An error occured
+        logger.error('An aprslib ConnectionError occured', exc_info=True)
 
     # Create heartbeat
     t1 = threading.Thread(target=heartbeat, args=(AIS, args.callsign, args.interval))
