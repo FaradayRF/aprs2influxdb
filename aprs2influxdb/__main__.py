@@ -10,10 +10,6 @@ import os
 
 from logging.handlers import TimedRotatingFileHandler
 
-# Globals
-#logging.basicConfig(level=logging.INFO)
-#logger = logging.getLogger("aprs2influxdb")
-
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
 parser.add_argument('--dbhost', help='Set InfluxDB host', default="localhost")
