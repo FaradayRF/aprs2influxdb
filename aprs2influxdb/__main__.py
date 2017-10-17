@@ -167,7 +167,7 @@ def parseUncompressed(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course"]
-    fieldTextKeys = ["to", "messagecapable", "phg", "rng", "raw_timestamp", "via"]
+    fieldTextKeys = ["to", "messagecapable", "phg", "rng", "via"]
 
     # Extract fields from packet
     try:
@@ -211,6 +211,14 @@ def parseUncompressed(jsonData):
                 fields.append(comment)
             else:
                 pass
+        # Extract raw_timestamp from packet
+        if "raw_timestamp" in jsonData:
+            rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+            if len(jsonData.get("raw_timestamp")) > 0:
+                fields.append(rawtimestamp)
+            else:
+                pass
+
 
         # Parse telemetry data if present
         fields = parseTelemetry(jsonData, fields)
@@ -385,7 +393,7 @@ def parseObject(jsonData):
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp", "altitude"]
-    fieldTextKeys = ["alive", "via", "to", "raw_timestamp", "object_format", "object_name", "rng", "daodatumbyte"]
+    fieldTextKeys = ["alive", "via", "to", "object_format", "object_name", "rng", "daodatumbyte"]
 
     try:
         for key in fieldNumKeys:
@@ -422,6 +430,13 @@ def parseObject(jsonData):
             comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
             if len(jsonData.get("symbol_table")) > 0:
                 fields.append(comment)
+            else:
+                pass
+        # Extract raw_timestamp from packet
+        if "raw_timestamp" in jsonData:
+            rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+            if len(jsonData.get("raw_timestamp")) > 0:
+                fields.append(rawtimestamp)
             else:
                 pass
 
@@ -470,7 +485,7 @@ def parseStatus(jsonData):
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["timestamp"]
-    fieldTextKeys = ["via", "to", "raw_timestamp"]
+    fieldTextKeys = ["via", "to"]
 
     try:
         for key in fieldNumKeys:
@@ -494,6 +509,13 @@ def parseStatus(jsonData):
             comment = parseTextString(jsonData.get("raw"), "raw")
             if len(jsonData.get("raw")) > 0:
                 fields.append(comment)
+            else:
+                pass
+        # Extract raw_timestamp from packet
+        if "raw_timestamp" in jsonData:
+            rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+            if len(jsonData.get("raw_timestamp")) > 0:
+                fields.append(rawtimestamp)
             else:
                 pass
 
@@ -661,7 +683,7 @@ def parseWX(jsonData):
 
     tagStr = ",".join(tags)
 
-    fieldTextKeys = ["to", "via", "wx_raw_timestamp"]
+    fieldTextKeys = ["to", "via"]
 
     try:
         fields = parseWeather(jsonData, fields)
@@ -681,6 +703,13 @@ def parseWX(jsonData):
             comment = parseTextString(jsonData.get("raw"), "raw")
             if len(jsonData.get("raw")) > 0:
                 fields.append(comment)
+            else:
+                pass
+        # Extract wx_raw_timestamp from packet
+        if "wx_raw_timestamp" in jsonData:
+            rawtimestamp = parseTextString(jsonData.get("wx_raw_timestamp"), "wx_raw_timestamp")
+            if len(jsonData.get("wx_raw_timestamp")) > 0:
+                fields.append(rawtimestamp)
             else:
                 pass
 
