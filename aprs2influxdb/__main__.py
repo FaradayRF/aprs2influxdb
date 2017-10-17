@@ -982,12 +982,14 @@ def parsePath(path):
     """Take path and turn into a string
 
     keyword arguments:
-    path -- list of paths
+    path -- list of paths from aprslib
     """
 
+    # Join path items into a string separated by commas, valid line protocol
     temp = ",".join(path)
     pathStr = ("path=\"{0}\"".format(temp))
 
+    # Return line protocol string
     return pathStr
 
 
