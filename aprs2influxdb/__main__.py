@@ -952,31 +952,29 @@ def callback(packet):
     keyword arguments:
     packet -- APRS-IS packet from aprslib connection
     """
-    #logger.info(packet)
-
-    # Open a new connection every time, probably SLOWWWW
+    # Open a new connection to influxdb, parse the packet into line protocol
     influxConn = connectInfluxDB()
-    try:
-        line = jsonToLineProtocol(packet)
-    except StandardError as e:
-        logger.error(e)
+    line = jsonToLineProtocol(packet)
 
+    # Check for line protocol string
     if line:
-        #logger.debug(line)
+        # Write string to database
         try:
             influxConn.write_points([line], protocol='line')
 
-        except StandardError as e:
-            logger.error(e)
-            logger.error(packet)
+        except StandardError:
+            # An error occured before writing to influxdb
+            logger.error('A StandardError occured', exc_info=True)
 
-        except influxdb.exceptions.InfluxDBClientError as e:
-            logger.error(packet["raw"])
-            logger.error(e)
+        except influxdb.exceptions.InfluxDBClientError:
+            # An error occured in the request
+            logger.error('An error occured in the request', exc_info=True)
+            logger.error("Line Protocol: {0}".format(line))
 
-        except influxdb.exceptions.InfluxDBServerError as e:
-            logger.error(packet["raw"])
-            logger.error(e)
+        except influxdb.exceptions.InfluxDBServerError:
+            # An error occured in the server
+            logger.error('An error occured in the server', exc_info=True)
+            logger.error("Line Protocol: {0}".format(line))
 
 
 def connectInfluxDB():
