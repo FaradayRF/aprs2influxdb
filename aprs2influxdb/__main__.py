@@ -148,7 +148,7 @@ def parseUncompressed(jsonData):
     """
     # Converts aprslib JSON to influxdb line protocol
     # Schema
-    # tag = from
+    # field = from
     # field = to
     # field = symbol_table
     # field = symbol
@@ -191,7 +191,7 @@ def parseUncompressed(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -199,7 +199,7 @@ def parseUncompressed(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course"]
-    fieldTextKeys = ["to", "messagecapable", "phg", "rng", "via"]
+    fieldTextKeys = ["from", "to", "messagecapable", "phg", "rng", "via"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
@@ -296,7 +296,7 @@ def parseMicE(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -304,7 +304,7 @@ def parseMicE(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits"]
-    fieldTextKeys = ["via", "to", "mtype", "daodatumbyte"]
+    fieldTextKeys = ["from", "via", "to", "mtype", "daodatumbyte"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
@@ -399,7 +399,7 @@ def parseObject(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -407,7 +407,7 @@ def parseObject(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp", "altitude"]
-    fieldTextKeys = ["alive", "via", "to", "object_format", "object_name", "rng", "daodatumbyte"]
+    fieldTextKeys = ["from", "alive", "via", "to", "object_format", "object_name", "rng", "daodatumbyte"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
@@ -489,7 +489,7 @@ def parseStatus(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -497,7 +497,7 @@ def parseStatus(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["timestamp"]
-    fieldTextKeys = ["via", "to"]
+    fieldTextKeys = ["from", "via", "to"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
@@ -591,7 +591,7 @@ def parseCompressed(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -599,7 +599,7 @@ def parseCompressed(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "gpsfixstatus", "altitude", "speed", "course", "timestamp"]
-    fieldTextKeys = ["to", "messagecapable", "phg", "via"]
+    fieldTextKeys = ["from", "to", "messagecapable", "phg", "via"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
@@ -686,14 +686,14 @@ def parseWX(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
     tagStr = ",".join(tags)
 
     # Create field key lists to iterate through
-    fieldTextKeys = ["to", "via"]
+    fieldTextKeys = ["from", "to", "via"]
 
     # Extract text fields from packet
     for key in fieldTextKeys:
@@ -756,14 +756,14 @@ def parseBeacon(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
     tagStr = ",".join(tags)
 
     # Create field key lists to iterate through
-    fieldTextKeys = ["to", "via"]
+    fieldTextKeys = ["from", "to", "via"]
 
     # Extract text fields from packet
     for key in fieldTextKeys:
@@ -819,7 +819,7 @@ def parseBulletin(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -827,7 +827,7 @@ def parseBulletin(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["bid"]
-    fieldTextKeys = ["to", "via"]
+    fieldTextKeys = ["from", "to", "via"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
@@ -895,7 +895,7 @@ def parseMessage(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -903,7 +903,7 @@ def parseMessage(jsonData):
 
     # Create field key lists to iterate through
     fieldNumKeys = ["msgNo"]
-    fieldTextKeys = ["to", "via", "addresse"]
+    fieldTextKeys = ["from", "to", "via", "addresse"]
 
     # Extract number fields from packet
     for key in fieldNumKeys:
