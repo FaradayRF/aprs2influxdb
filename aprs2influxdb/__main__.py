@@ -38,21 +38,20 @@ def jsonToLineProtocol(jsonData):
     """
 
     try:
-        # Parse uncompressed format packets
         if jsonData["format"] == "uncompressed":
             # Parse uncompressed APRS packet
             return parseUncompressed(jsonData)
 
         if jsonData["format"] == "mic-e":
-            # Parse Mice-E APRS packet
+            # Parse mic-e APRS packet
             return parseMicE(jsonData)
 
         if jsonData["format"] == "object":
-            # Parse Object APRS packet
+            # Parse object APRS packet
             return parseObject(jsonData)
 
         if jsonData["format"] == "compressed":
-            # Parse Object APRS packet
+            # Parse compressed APRS packet
             return parseCompressed(jsonData)
 
         if jsonData["format"] == "status":
@@ -60,27 +59,27 @@ def jsonToLineProtocol(jsonData):
             return parseStatus(jsonData)
 
         if jsonData["format"] == "wx":
-            # Parse WX APRS packet
+            # Parse wx APRS packet
             return parseWX(jsonData)
 
         if jsonData["format"] == "beacon":
-            # Parse WX APRS packet
+            # Parse beacon APRS packet
             return parseBeacon(jsonData)
 
         if jsonData["format"] == "bulletin":
-            # Parse Bulletin APRS packet
+            # Parse bulletin APRS packet
             return parseBulletin(jsonData)
 
         if jsonData["format"] == "message":
-            # Parse Message APRS packet
+            # Parse message APRS packet
             return parseMessage(jsonData)
 
-        # Uncomment for all other formats not yes parsed
-        #logger.warning(jsonData["format"])
+        # All other formats not yes parsed
+        logger.debug("Not parsing {0} packets".format(jsonData))
 
     except StandardError:
         # An error occured
-        logger.error('A KeyError error occured', exc_info=True)
+        logger.error('A parsing StandardError occured', exc_info=True)
         logger.error("Packet: {0}".format(jsonData))
 
 def parseTelemetry(jsonData, fieldList):
