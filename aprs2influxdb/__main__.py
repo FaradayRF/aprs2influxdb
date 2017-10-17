@@ -589,54 +589,62 @@ def parseCompressed(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
+    # Obtain tags
     tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
+    # Join tags into comma separated string
     tagStr = ",".join(tags)
 
+    # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "gpsfixstatus", "altitude", "speed", "course", "timestamp"]
     fieldTextKeys = ["to", "messagecapable", "phg", "via"]
 
+    # Extract number fields from packet
     for key in fieldNumKeys:
         if key in jsonData:
             fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
     for key in fieldTextKeys:
         if key in jsonData:
             fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
     if "path" in jsonData:
         fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
     if "comment" in jsonData:
         comment = parseTextString(jsonData.get("comment"), "comment")
         if len(jsonData.get("comment")) > 0:
             fields.append(comment)
-        else:
-            pass
+
+    # Extract telemetry
     fields = parseTelemetry(jsonData, fields)
 
+    # Extract weather data
     fields = parseWeather(jsonData, fields)
 
-    # Extract raw from packet
+    # Extract raw packet
     if "raw" in jsonData:
         comment = parseTextString(jsonData.get("raw"), "raw")
         if len(jsonData.get("raw")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract symbol from packet
+
+    # Extract APRS symbol
     if "symbol" in jsonData:
         comment = parseTextString(jsonData.get("symbol"), "symbol")
         if len(jsonData.get("symbol")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract symbol from packet
+
+    # Extract APRS symbol table
     if "symbol_table" in jsonData:
         comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
         if len(jsonData.get("symbol_table")) > 0:
             fields.append(comment)
-        else:
-            pass
 
+    # Combine final valid line protocol string
     fieldsStr = ",".join(fields)
 
     return measurement + "," + tagStr + " " + fieldsStr
