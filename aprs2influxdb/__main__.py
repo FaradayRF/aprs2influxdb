@@ -85,7 +85,7 @@ def jsonToLineProtocol(jsonData):
 def parseTelemetry(jsonData, fieldList):
     '''parse telemetry from packets
 
-    Iterates through a telemetry formated packet to extra sequence, bits, and
+    Iterates through a packet to extra telemetry data: sequence, bits, and
     values. These are placed into the fieldList which is returned at the end of
     the function.
 
@@ -114,12 +114,27 @@ def parseTelemetry(jsonData, fieldList):
 
 
 def parseWeather(jsonData, fieldList):
-    wxFields = ["humidity", "pressure", "rain_1h", "rain_24h", "rain_since_midnight", "temperature", "wind_direction", "wind_gust", "wind_speed"]
+    '''parse weather data from packets
+
+    Iterates through a packet to extra weather data. Items which are found are
+    appended to the fieldList which is returned.
+
+    keyword arguments:
+    jsonData -- JSON packet from aprslib
+    fieldList -- list of field items currently parsed
+    '''
+
+    # Check for weather data key
     if "weather" in jsonData:
         items = jsonData.get("weather")
+
+        # Define weather items to check for
+        wxFields = ["humidity", "pressure", "rain_1h", "rain_24h", "rain_since_midnight", "temperature", "wind_direction", "wind_gust", "wind_speed"]
         for key in wxFields:
             if key in items:
                 fieldList.append("{0}={1}".format(key, items.get(key)))
+
+    # Return fieldList with found items appended
     return fieldList
 
 
@@ -173,69 +188,65 @@ def parseUncompressed(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
+    # Obtain tags
     tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
+    # Join tags into comma separated string
     tagStr = ",".join(tags)
 
     # Create field key lists to iterate through
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course"]
     fieldTextKeys = ["to", "messagecapable", "phg", "rng", "via"]
 
-    # Extract fields from packet
+    # Extract number fields from packet
     for key in fieldNumKeys:
         if key in jsonData:
             fields.append("{0}={1}".format(key, jsonData.get(key)))
 
+    # Extract text fields from packet
     for key in fieldTextKeys:
         if key in jsonData:
             fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
 
-    # Extract path and create string from list
+    # Extract path
     if "path" in jsonData:
         fields.append(parsePath(jsonData.get("path")))
 
-    # Extract comment from packet
+    # Extract comment
     if "comment" in jsonData:
         comment = parseTextString(jsonData.get("comment"), "comment")
         if len(jsonData.get("comment")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract raw from packet
+
+    # Extract raw packet
     if "raw" in jsonData:
         comment = parseTextString(jsonData.get("raw"), "raw")
         if len(jsonData.get("raw")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract symbol from packet
+
+    # Extract APRS symbol
     if "symbol" in jsonData:
         comment = parseTextString(jsonData.get("symbol"), "symbol")
         if len(jsonData.get("symbol")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract symbol from packet
+
+    # Extract APRS symbol table
     if "symbol_table" in jsonData:
         comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
         if len(jsonData.get("symbol_table")) > 0:
             fields.append(comment)
-        else:
-            pass
-    # Extract raw_timestamp from packet
+
+    # Extract raw timestamp from packet
     if "raw_timestamp" in jsonData:
         rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
         if len(jsonData.get("raw_timestamp")) > 0:
             fields.append(rawtimestamp)
-        else:
-            pass
 
-
-    # Parse telemetry data if present
+    # Parse telemetry data
     fields = parseTelemetry(jsonData, fields)
 
-    # Parse weather data if present
+    # Parse weather data
     fields = parseWeather(jsonData, fields)
 
     # Combine all fields into a valid line protocol string
