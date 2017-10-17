@@ -139,7 +139,8 @@ def parseWeather(jsonData, fieldList):
 
 
 def parseUncompressed(jsonData):
-    """Parse uncompressed APRS packets into influxedb line protocol
+    """Parse uncompressed APRS packets into influxedb line protocol. Returns a
+    valid line protocol string.
 
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
@@ -257,7 +258,7 @@ def parseUncompressed(jsonData):
 
 
 def parseMicE(jsonData):
-    """Parse Mic-e APRS packets into influxedb line protocol
+    """Parse mic-e APRS packets into influxedb line protocol
 
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
