@@ -82,6 +82,7 @@ def jsonToLineProtocol(jsonData):
         logger.error('A parsing StandardError occured', exc_info=True)
         logger.error("Packet: {0}".format(jsonData))
 
+
 def parseTelemetry(jsonData, fieldList):
     '''parse telemetry from packets
 
@@ -1136,7 +1137,7 @@ def main():
         # An error occured
         logger.error('An aprslib LoginError occured', exc_info=True)
 
-    except aprslib.exceptions.ConnectionError as e:
+    except aprslib.exceptions.ConnectionError:
         # An error occured
         logger.error('An aprslib ConnectionError occured', exc_info=True)
 
