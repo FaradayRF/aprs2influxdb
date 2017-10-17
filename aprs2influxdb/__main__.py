@@ -41,46 +41,51 @@ def jsonToLineProtocol(jsonData):
     jsonData -- aprslib parsed JSON packet
     """
 
-    # Parse uncompressed format packets
-    if jsonData["format"] == "uncompressed":
-        # Parse uncompressed APRS packet
-        return parseUncompressed(jsonData)
+    try:
+        # Parse uncompressed format packets
+        if jsonData["format"] == "uncompressed":
+            # Parse uncompressed APRS packet
+            return parseUncompressed(jsonData)
 
-    if jsonData["format"] == "mic-e":
-        # Parse Mice-E APRS packet
-        return parseMicE(jsonData)
+        if jsonData["format"] == "mic-e":
+            # Parse Mice-E APRS packet
+            return parseMicE(jsonData)
 
-    if jsonData["format"] == "object":
-        # Parse Object APRS packet
-        return parseObject(jsonData)
+        if jsonData["format"] == "object":
+            # Parse Object APRS packet
+            return parseObject(jsonData)
 
-    if jsonData["format"] == "compressed":
-        # Parse Object APRS packet
-        return parseCompressed(jsonData)
+        if jsonData["format"] == "compressed":
+            # Parse Object APRS packet
+            return parseCompressed(jsonData)
 
-    if jsonData["format"] == "status":
-        # Parse status APRS packet
-        return parseStatus(jsonData)
+        if jsonData["format"] == "status":
+            # Parse status APRS packet
+            return parseStatus(jsonData)
 
-    if jsonData["format"] == "wx":
-        # Parse WX APRS packet
-        return parseWX(jsonData)
+        if jsonData["format"] == "wx":
+            # Parse WX APRS packet
+            return parseWX(jsonData)
 
-    if jsonData["format"] == "beacon":
-        # Parse WX APRS packet
-        return parseBeacon(jsonData)
+        if jsonData["format"] == "beacon":
+            # Parse WX APRS packet
+            return parseBeacon(jsonData)
 
-    if jsonData["format"] == "bulletin":
-        # Parse Bulletin APRS packet
-        return parseBulletin(jsonData)
+        if jsonData["format"] == "bulletin":
+            # Parse Bulletin APRS packet
+            return parseBulletin(jsonData)
 
-    if jsonData["format"] == "message":
-        # Parse Message APRS packet
-        return parseMessage(jsonData)
+        if jsonData["format"] == "message":
+            # Parse Message APRS packet
+            return parseMessage(jsonData)
 
-    # Uncomment for all other formats not yes parsed
-    #logger.warning(jsonData["format"])
+        # Uncomment for all other formats not yes parsed
+        #logger.warning(jsonData["format"])
 
+    except StandardError:
+        # An error occured
+        logger.error('A KeyError error occured', exc_info=True)
+        logger.error("Packet: {0}".format(jsonData))
 
 def parseTelemetry(jsonData, fieldList):
     if "telemetry" in jsonData:
@@ -156,12 +161,8 @@ def parseUncompressed(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
@@ -170,70 +171,60 @@ def parseUncompressed(jsonData):
     fieldTextKeys = ["to", "messagecapable", "phg", "rng", "via"]
 
     # Extract fields from packet
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
 
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
 
-        # Extract path and create string from list
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
+    # Extract path and create string from list
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
 
-        # Extract comment from packet
-        if "comment" in jsonData:
-            comment = parseTextString(jsonData.get("comment"), "comment")
-            if len(jsonData.get("comment")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol" in jsonData:
-            comment = parseTextString(jsonData.get("symbol"), "symbol")
-            if len(jsonData.get("symbol")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol_table" in jsonData:
-            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
-            if len(jsonData.get("symbol_table")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw_timestamp from packet
-        if "raw_timestamp" in jsonData:
-            rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
-            if len(jsonData.get("raw_timestamp")) > 0:
-                fields.append(rawtimestamp)
-            else:
-                pass
+    # Extract comment from packet
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw_timestamp from packet
+    if "raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+        if len(jsonData.get("raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+        else:
+            pass
 
 
-        # Parse telemetry data if present
-        fields = parseTelemetry(jsonData, fields)
+    # Parse telemetry data if present
+    fields = parseTelemetry(jsonData, fields)
 
-        # Parse weather data if present
-        fields = parseWeather(jsonData, fields)
-
-    except KeyError as e:
-        logger.error(e)
-
-    except ValueError as e:
-        logger.error(e)
-
-    except StandardError as e:
-        logger.error(e)
+    # Parse weather data if present
+    fields = parseWeather(jsonData, fields)
 
     # Combine all fields into a valid line protocol string
     fieldsStr = ",".join(fields)
@@ -278,58 +269,49 @@ def parseMicE(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits"]
     fieldTextKeys = ["via", "to", "mtype", "daodatumbyte"]
 
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        if "comment" in jsonData:
-            comment = parseTextString(jsonData.get("comment"), "comment")
-            if len(jsonData.get("comment")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol" in jsonData:
-            comment = parseTextString(jsonData.get("symbol"), "symbol")
-            if len(jsonData.get("symbol")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol_table" in jsonData:
-            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
-            if len(jsonData.get("symbol_table")) > 0:
-                fields.append(comment)
-            else:
-                pass
-
-    except KeyError as e:
-        logger.error("KeyError: {0}, Mic-E Packet".format(e))
-        logger.error(jsonData)
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -382,67 +364,58 @@ def parseObject(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        #tags.append("to={0}".format(jsonData.get("to")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    #tags.append("to={0}".format(jsonData.get("to")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp", "altitude"]
     fieldTextKeys = ["alive", "via", "to", "object_format", "object_name", "rng", "daodatumbyte"]
 
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        if "comment" in jsonData:
-            comment = parseTextString(jsonData.get("comment"), "comment")
-            if len(jsonData.get("comment")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        fields = parseTelemetry(jsonData, fields)
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol" in jsonData:
-            comment = parseTextString(jsonData.get("symbol"), "symbol")
-            if len(jsonData.get("symbol")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol_table" in jsonData:
-            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
-            if len(jsonData.get("symbol_table")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw_timestamp from packet
-        if "raw_timestamp" in jsonData:
-            rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
-            if len(jsonData.get("raw_timestamp")) > 0:
-                fields.append(rawtimestamp)
-            else:
-                pass
-
-    except KeyError as e:
-        logger.error("KeyError: {0}, object Packet".format(e))
-        logger.error(jsonData)
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    fields = parseTelemetry(jsonData, fields)
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw_timestamp from packet
+    if "raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+        if len(jsonData.get("raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -475,53 +448,44 @@ def parseStatus(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["timestamp"]
     fieldTextKeys = ["via", "to"]
 
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        fields = parseTelemetry(jsonData, fields)
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    fields = parseTelemetry(jsonData, fields)
 
-        if "status" in jsonData:
-            comment = parseTextString(jsonData.get("status"), "status")
-            if len(jsonData.get("status")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw_timestamp from packet
-        if "raw_timestamp" in jsonData:
-            rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
-            if len(jsonData.get("raw_timestamp")) > 0:
-                fields.append(rawtimestamp)
-            else:
-                pass
-
-    except KeyError as e:
-        logger.error("KeyError: {0}, object Packet".format(e))
-        logger.error(jsonData)
+    if "status" in jsonData:
+        comment = parseTextString(jsonData.get("status"), "status")
+        if len(jsonData.get("status")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw_timestamp from packet
+    if "raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+        if len(jsonData.get("raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -578,62 +542,53 @@ def parseCompressed(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["latitude", "longitude", "gpsfixstatus", "altitude", "speed", "course", "timestamp"]
     fieldTextKeys = ["to", "messagecapable", "phg", "via"]
 
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        if "comment" in jsonData:
-            comment = parseTextString(jsonData.get("comment"), "comment")
-            if len(jsonData.get("comment")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        fields = parseTelemetry(jsonData, fields)
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    fields = parseTelemetry(jsonData, fields)
 
-        fields = parseWeather(jsonData, fields)
+    fields = parseWeather(jsonData, fields)
 
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol" in jsonData:
-            comment = parseTextString(jsonData.get("symbol"), "symbol")
-            if len(jsonData.get("symbol")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract symbol from packet
-        if "symbol_table" in jsonData:
-            comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
-            if len(jsonData.get("symbol_table")) > 0:
-                fields.append(comment)
-            else:
-                pass
-
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract symbol from packet
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -674,48 +629,40 @@ def parseWX(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
-    except KeyError as e:
-        logger.error(e)
 
     tagStr = ",".join(tags)
 
     fieldTextKeys = ["to", "via"]
 
-    try:
-        fields = parseWeather(jsonData, fields)
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        if "comment" in jsonData:
-            comment = parseTextString(jsonData.get("comment"), "comment")
-            if len(jsonData.get("comment")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract wx_raw_timestamp from packet
-        if "wx_raw_timestamp" in jsonData:
-            rawtimestamp = parseTextString(jsonData.get("wx_raw_timestamp"), "wx_raw_timestamp")
-            if len(jsonData.get("wx_raw_timestamp")) > 0:
-                fields.append(rawtimestamp)
-            else:
-                pass
-
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
+    fields = parseWeather(jsonData, fields)
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract wx_raw_timestamp from packet
+    if "wx_raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("wx_raw_timestamp"), "wx_raw_timestamp")
+        if len(jsonData.get("wx_raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -746,40 +693,31 @@ def parseBeacon(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldTextKeys = ["to", "via"]
 
-    try:
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        if "text" in jsonData:
-            comment = parseTextString(jsonData.get("text"), "text")
-            if len(jsonData.get("text")) > 0:
-                fields.append(comment)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    if "text" in jsonData:
+        comment = parseTextString(jsonData.get("text"), "text")
+        if len(jsonData.get("text")) > 0:
+            fields.append(comment)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -812,50 +750,41 @@ def parseBulletin(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["bid"]
     fieldTextKeys = ["to", "via"]
 
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
-        if "message_text" in jsonData:
-            message = parseTextString(jsonData.get("message_text"), "message_text")
-            if len(jsonData.get("message_text")) > 0:
-                fields.append(message)
-            else:
-                pass
-        if "identifier" in jsonData:
-            identifier = parseTextString(jsonData.get("identifier"), "identifier")
-            if len(jsonData.get("identifier")) > 0:
-                fields.append(identifier)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+    if "message_text" in jsonData:
+        message = parseTextString(jsonData.get("message_text"), "message_text")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(message)
+        else:
+            pass
+    if "identifier" in jsonData:
+        identifier = parseTextString(jsonData.get("identifier"), "identifier")
+        if len(jsonData.get("identifier")) > 0:
+            fields.append(identifier)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
@@ -889,52 +818,43 @@ def parseMessage(jsonData):
     # Set measurement to "packet"
     measurement = "packet"
 
-    try:
-        tags.append("from={0}".format(jsonData.get("from")))
-        tags.append("format={0}".format(jsonData.get("format")))
-
-    except KeyError as e:
-        logger.error(e)
+    tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
 
     tagStr = ",".join(tags)
 
     fieldNumKeys = ["msgNo"]
     fieldTextKeys = ["to", "via", "addresse"]
 
-    try:
-        for key in fieldNumKeys:
-            if key in jsonData:
-                fields.append("{0}={1}".format(key, jsonData.get(key)))
-        for key in fieldTextKeys:
-            if key in jsonData:
-                fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-        if "path" in jsonData:
-            fields.append(parsePath(jsonData.get("path")))
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
 
-        if "message_text" in jsonData:
-            message = parseTextString(jsonData.get("message_text"), "message_text")
-            if len(jsonData.get("message_text")) > 0:
-                fields.append(message)
-            else:
-                pass
+    if "message_text" in jsonData:
+        message = parseTextString(jsonData.get("message_text"), "message_text")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(message)
+        else:
+            pass
 
-        if "response" in jsonData:
-            message = parseTextString(jsonData.get("response"), "response")
-            if len(jsonData.get("response")) > 0:
-                fields.append(message)
-            else:
-                pass
-        # Extract raw from packet
-        if "raw" in jsonData:
-            comment = parseTextString(jsonData.get("raw"), "raw")
-            if len(jsonData.get("raw")) > 0:
-                fields.append(comment)
-            else:
-                pass
-
-    except KeyError as e:
-        # Expect many KeyErrors for stations not sending telemetry
-        pass
+    if "response" in jsonData:
+        message = parseTextString(jsonData.get("response"), "response")
+        if len(jsonData.get("response")) > 0:
+            fields.append(message)
+        else:
+            pass
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+        else:
+            pass
 
     fieldsStr = ",".join(fields)
 
