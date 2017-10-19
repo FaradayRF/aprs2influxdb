@@ -1,4 +1,5 @@
 # aprs2influxdb
+[![Build Status](https://travis-ci.org/FaradayRF/aprs2influxdb.svg?branch=master)](https://travis-ci.org/FaradayRF/aprs2influxdb)
 This program interfaces ham radio APRS-IS servers and saves packet data into an influxdb database. aprs2influxdb handles the connection, parsing, and saving of data into an influxdb database from APRS-IS using line protocol formatted strings. Periodically, a status message is also sent to the APRS-IS server in order to maintain the connection with the APRS-IS server by preventing a timeout.
 
 Supported APRS Packet Formats:
