@@ -146,8 +146,7 @@ def parseUncompressed(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # field = from
     # field = to
     # field = symbol_table
@@ -265,10 +264,9 @@ def parseMicE(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = symbol_table
     # field = symbol
     # tag = format
@@ -296,7 +294,6 @@ def parseMicE(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -361,7 +358,7 @@ def parseObject(jsonData):
     # Converts aprslib JSON to influxdb line protocol
     # Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = to
     # field = symbol_table
     # field = symbol
@@ -468,10 +465,9 @@ def parseStatus(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = to
     # tag = format
     # field = via
@@ -489,7 +485,6 @@ def parseStatus(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -546,10 +541,9 @@ def parseCompressed(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = to
     # field = symbol_table
     # field = symbol
@@ -591,7 +585,6 @@ def parseCompressed(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -657,10 +650,9 @@ def parseWX(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet*
-    # tag = from
+    # field = from
     # field = to
     # tag = format
     # field = via
@@ -686,7 +678,6 @@ def parseWX(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -737,10 +728,9 @@ def parseBeacon(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = to
     # tag = format
     # field = via
@@ -756,7 +746,6 @@ def parseBeacon(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -798,10 +787,9 @@ def parseBulletin(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = to
     # tag = format
     # field = via
@@ -819,7 +807,6 @@ def parseBulletin(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
@@ -873,10 +860,9 @@ def parseMessage(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
+    ## Schema
     # measurement = packet
-    # tag = from
+    # field = from
     # field = to
     # tag = format
     # field = via
@@ -895,7 +881,6 @@ def parseMessage(jsonData):
     measurement = "packet"
 
     # Obtain tags
-    #tags.append("from={0}".format(jsonData.get("from")))
     tags.append("format={0}".format(jsonData.get("format")))
 
     # Join tags into comma separated string
