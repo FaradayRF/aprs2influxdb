@@ -3,8 +3,16 @@ This program interfaces ham radio APRS-IS servers and saves packet data into an 
 
 Supported APRS Packet Formats:
 * uncompressed
+* mic-e
+* object
+* compressed
+* status
+* wx
+* beacon
+* bulletin
+* message
 
-Non-ASCII characters in APRS packets are ignored!
+Non-ASCII characters in APRS packets are replaced!
 
 ## Getting started
 aprs2influxdb installs using pip can can be installed in editable mode with the source code or from [PyPI](https://pypi.python.org/pypi).
