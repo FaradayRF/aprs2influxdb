@@ -10,10 +10,6 @@ import os
 
 from logging.handlers import TimedRotatingFileHandler
 
-# Globals
-#logging.basicConfig(level=logging.INFO)
-#logger = logging.getLogger("aprs2influxdb")
-
 # Command line input
 parser = argparse.ArgumentParser(description='Connects to APRS-IS and saves stream to local InfluxDB')
 parser.add_argument('--dbhost', help='Set InfluxDB host', default="localhost")
@@ -40,75 +36,918 @@ def jsonToLineProtocol(jsonData):
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
-    # Converts aprslib JSON to influxdb line protocol
-    # Schema
-    # measurement = packet
-    # tag = from
-    # tag = to
-    # tag = symbolTable
-    # tag = symbol
+
+    try:
+        if jsonData["format"] == "uncompressed":
+            # Parse uncompressed APRS packet
+            return parseUncompressed(jsonData)
+
+        if jsonData["format"] == "mic-e":
+            # Parse mic-e APRS packet
+            return parseMicE(jsonData)
+
+        if jsonData["format"] == "object":
+            # Parse object APRS packet
+            return parseObject(jsonData)
+
+        if jsonData["format"] == "compressed":
+            # Parse compressed APRS packet
+            return parseCompressed(jsonData)
+
+        if jsonData["format"] == "status":
+            # Parse status APRS packet
+            return parseStatus(jsonData)
+
+        if jsonData["format"] == "wx":
+            # Parse wx APRS packet
+            return parseWX(jsonData)
+
+        if jsonData["format"] == "beacon":
+            # Parse beacon APRS packet
+            return parseBeacon(jsonData)
+
+        if jsonData["format"] == "bulletin":
+            # Parse bulletin APRS packet
+            return parseBulletin(jsonData)
+
+        if jsonData["format"] == "message":
+            # Parse message APRS packet
+            return parseMessage(jsonData)
+
+        # All other formats not yes parsed
+        logger.debug("Not parsing {0} packets".format(jsonData))
+
+    except StandardError:
+        # An error occured
+        logger.error('A parsing StandardError occured', exc_info=True)
+        logger.error("Packet: {0}".format(jsonData))
+
+
+def parseTelemetry(jsonData, fieldList):
+    '''parse telemetry from packets
+
+    Iterates through a packet to extra telemetry data: sequence, bits, and
+    values. These are placed into the fieldList which is returned at the end of
+    the function.
+
+    keyword arguments:
+    jsonData -- JSON packet from aprslib
+    fieldList -- list of field items currently parsed
+    '''
+
+    # Check for telemetry in packet
+    if "telemetry" in jsonData:
+        items = jsonData.get("telemetry")
+        # Extract telemetry sequency
+        if "seq" in items:
+            fieldList.append("seq={0}".format(items.get("seq")))
+        # Extract IO bits
+        if "bits" in items:
+            fieldList.append("bits={0}".format(items.get("bits")))
+        # Extra analog values
+        if "vals" in items:
+            values = items.get("vals")
+            for analog in range(5):
+                fieldList.append("analog{0}={1}".format(analog + 1, values[analog]))
+
+    # Return fieldList with found items appended
+    return fieldList
+
+
+def parseWeather(jsonData, fieldList):
+    '''parse weather data from packets
+
+    Iterates through a packet to extra weather data. Items which are found are
+    appended to the fieldList which is returned.
+
+    keyword arguments:
+    jsonData -- JSON packet from aprslib
+    fieldList -- list of field items currently parsed
+    '''
+
+    # Check for weather data key
+    if "weather" in jsonData:
+        items = jsonData.get("weather")
+
+        # Define weather items to check for
+        wxFields = ["humidity", "pressure", "rain_1h", "rain_24h", "rain_since_midnight", "temperature", "wind_direction", "wind_gust", "wind_speed"]
+        for key in wxFields:
+            if key in items:
+                fieldList.append("{0}={1}".format(key, items.get(key)))
+
+    # Return fieldList with found items appended
+    return fieldList
+
+
+def parseUncompressed(jsonData):
+    """Parse uncompressed APRS packets into influxedb line protocol. Returns a
+    valid line protocol string.
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # field = from
+    # field = to
+    # field = symbol_table
+    # field = symbol
     # tag = format
-    # tag = comment
+    # field = via
+    # field = messagecapable
     # field = latitude
     # field = longitude
     # field = posAmbiguity
     # field = altitude
+    # field = raw
     # field = speed
-    # field = sequenceNumber
+    # field = course
+    # field = raw_timestamp
+    # field = seq
     # field = analog1
     # field = analog2
     # field = analog3
     # field = analog4
     # field = analog5
-    # field = digital
+    # field = bits
+    # field = phg
+    # field = rng
+    # field = comment
+    # field = path
+    # field = pressure
+    # field = rain_1h
+    # field = rain_24h
+    # field = rain_since_midnight
+    # field = temperature
+    # field = wind_direction
+    # field = wind_gust
+    # field = wind_speed
 
-    # Parse uncompressed format packets
-    if jsonData["format"] == "uncompressed":
-        # initialize variables
-        tags = []
-        fields = []
+    # initialize variables
+    tags = []
+    fields = []
 
-        # Set measurement to "packet"
-        measurement = "packet"
+    # Set measurement to "packet"
+    measurement = "packet"
 
-        try:
-            tags.append("from={0}".format(jsonData.get("from")))
-            tags.append("to={0}".format(jsonData.get("to")))
-            tags.append("format={0}".format(jsonData.get("format")))
+    # Obtain tags
+    #
+    tags.append("format={0}".format(jsonData.get("format")))
 
-        except KeyError as e:
-            logger.error(e)
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
 
-        tagStr = ",".join(tags)
+    # Create field key lists to iterate through
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course"]
+    fieldTextKeys = ["from", "to", "messagecapable", "phg", "rng", "via"]
 
-        try:
-            fields.append("latitude={0}".format(jsonData.get("latitude", 0)))
-            fields.append("longitude={0}".format(jsonData.get("longitude", 0)))
-            fields.append("posAmbiguity={0}".format(jsonData.get("posambiguity", 0)))
-            fields.append("altitude={0}".format(jsonData.get("altitude", 0)))
-            fields.append("speed={0}".format(jsonData.get("speed", 0)))
-        except KeyError as e:
-            logger.error(e)
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
 
-        try:
-            if jsonData["telemetry"]["seq"]:
-                fields.append("sequenceNumber={0}".format(jsonData["telemetry"]["seq"]))
-                fields.append("analog1={0}".format(jsonData["telemetry"]["vals"][0]))
-                fields.append("analog2={0}".format(jsonData["telemetry"]["vals"][1]))
-                fields.append("analog3={0}".format(jsonData["telemetry"]["vals"][2]))
-                fields.append("analog4={0}".format(jsonData["telemetry"]["vals"][3]))
-                fields.append("analog5={0}".format(jsonData["telemetry"]["vals"][4]))
-                fields.append("digital={0}".format(jsonData["telemetry"]["bits"]))
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
 
-        except KeyError as e:
-            # Expect many KeyErrors for stations not sending telemetry
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Extract APRS symbol
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+
+    # Extract APRS symbol table
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+
+    # Extract raw timestamp from packet
+    if "raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+        if len(jsonData.get("raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+
+    # Parse telemetry data
+    fields = parseTelemetry(jsonData, fields)
+
+    # Parse weather data
+    fields = parseWeather(jsonData, fields)
+
+    # Combine all fields into a valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    # Combine final valid line protocol string
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseMicE(jsonData):
+    """Parse mic-e APRS packets into influxedb line protocol. Returns a
+    valid line protocol string.
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = symbol_table
+    # field = symbol
+    # tag = format
+    # field = via
+    # field = latitude
+    # field = longitude
+    # field = posambiguity
+    # field = altitude
+    # field = speed
+    # field = course
+    # field = comment
+    # field = path
+    # field = mbits
+    # field = mtype
+    # field = raw
+    # field = to
+    # field = daodatumbyte
+    # field = path
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "altitude", "speed", "course", "mbits"]
+    fieldTextKeys = ["from", "via", "to", "mtype", "daodatumbyte"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+        else:
             pass
 
-        try:
-            comment = jsonData.get("comment").encode('ascii', 'ignore')
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
 
-            if comment:
-                fields.append("comment=\"{0}\"".format(comment.replace("\"", "")))
+    # Extract APRS symbol
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+
+    # Extract APRS symbol table
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseObject(jsonData):
+    """Parse Object APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    # Converts aprslib JSON to influxdb line protocol
+    # Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # field = symbol_table
+    # field = symbol
+    # tag = format
+    # field = via
+    # field = alive
+    # field = object_format
+    # field = object_name
+    # field = latitude
+    # field = longitude
+    # field = posambiguity
+    # field = raw_timestamp
+    # field = timestamp
+    # field = speed
+    # field = course
+    # field = altitude
+    # field = comment
+    # field = path
+    # field  = raw
+    # field = daodatumbyte
+    # field = rng
+    # field = bits
+    # field = seq
+    # field = analog1
+    # field = analog2
+    # field = analog3
+    # field = analog4
+    # field = analog5
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    #tags.append("from={0}".format(jsonData.get("from")))
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["latitude", "longitude", "posambiguity", "speed", "course", "timestamp", "altitude"]
+    fieldTextKeys = ["from", "alive", "via", "to", "object_format", "object_name", "rng", "daodatumbyte"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+
+    # Parse telemetry
+    fields = parseTelemetry(jsonData, fields)
+
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Extract symbol
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+
+    # Extract symbol table
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+
+    # Extract raw_timestamp
+    if "raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+        if len(jsonData.get("raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseStatus(jsonData):
+    """Parse Status APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = status
+    # field = path
+    # field = timestamp
+    # field = raw
+    # field = raw_timestamp
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["timestamp"]
+    fieldTextKeys = ["from", "via", "to"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract telemetry
+    fields = parseTelemetry(jsonData, fields)
+
+    # Extract status
+    if "status" in jsonData:
+        comment = parseTextString(jsonData.get("status"), "status")
+        if len(jsonData.get("status")) > 0:
+            fields.append(comment)
+
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Extract raw timestamp
+    if "raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("raw_timestamp"), "raw_timestamp")
+        if len(jsonData.get("raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseCompressed(jsonData):
+    """Parse Compressed APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # field = symbol_table
+    # field = symbol
+    # tag = format
+    # field = via
+    # field = messagecapable
+    # field = latitude
+    # field = longitude
+    # field = gpsfixstatus
+    # field = altitude
+    # field = seq
+    # field = analog1
+    # field = analog2
+    # field = analog3
+    # field = analog4
+    # field = analog5
+    # field = bits
+    # field = comment
+    # field = path
+    # field = phg
+    # field = raw
+    # field = timestamp
+    # field = pressure
+    # field = rain_1h
+    # field = rain_24h
+    # field = rain_since_midnight
+    # field = temperature
+    # field = wind_direction
+    # field = wind_gust
+    # field = wind_speed
+    # field = speed
+    # field = course
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["latitude", "longitude", "gpsfixstatus", "altitude", "speed", "course", "timestamp"]
+    fieldTextKeys = ["from", "to", "messagecapable", "phg", "via"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+
+    # Extract telemetry
+    fields = parseTelemetry(jsonData, fields)
+
+    # Extract weather data
+    fields = parseWeather(jsonData, fields)
+
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Extract APRS symbol
+    if "symbol" in jsonData:
+        comment = parseTextString(jsonData.get("symbol"), "symbol")
+        if len(jsonData.get("symbol")) > 0:
+            fields.append(comment)
+
+    # Extract APRS symbol table
+    if "symbol_table" in jsonData:
+        comment = parseTextString(jsonData.get("symbol_table"), "symbol_table")
+        if len(jsonData.get("symbol_table")) > 0:
+            fields.append(comment)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseWX(jsonData):
+    """Parse WX APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet*
+    # field = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = wx_raw_timestamp
+    # field = comment
+    # field = humidity
+    # field = pressure
+    # field = rain_1h
+    # field = rain_24h
+    # field = rain_since_midnight
+    # field = temperature
+    # field = wind_direction
+    # field = wind_gust
+    # field = wind_speed
+    # field = path
+    # field = raw
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldTextKeys = ["from", "to", "via"]
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract comment
+    if "comment" in jsonData:
+        comment = parseTextString(jsonData.get("comment"), "comment")
+        if len(jsonData.get("comment")) > 0:
+            fields.append(comment)
+
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Extract wx_raw_timestamp from packet
+    if "wx_raw_timestamp" in jsonData:
+        rawtimestamp = parseTextString(jsonData.get("wx_raw_timestamp"), "wx_raw_timestamp")
+        if len(jsonData.get("wx_raw_timestamp")) > 0:
+            fields.append(rawtimestamp)
+
+    # Obtain weather data
+    fields = parseWeather(jsonData, fields)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseBeacon(jsonData):
+    """Parse Beacon APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = text
+    # field = path
+    # field = raw
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldTextKeys = ["from", "to", "via"]
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract text
+    if "text" in jsonData:
+        comment = parseTextString(jsonData.get("text"), "text")
+        if len(jsonData.get("text")) > 0:
+            fields.append(comment)
+
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseBulletin(jsonData):
+    """Parse Bulletin APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = message_text
+    # field = bid
+    # field = identifier
+    # field = path
+    # field = raw
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["bid"]
+    fieldTextKeys = ["from", "to", "via"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract message text
+    if "message_text" in jsonData:
+        message = parseTextString(jsonData.get("message_text"), "message_text")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(message)
+
+    # Extract identifier
+    if "identifier" in jsonData:
+        identifier = parseTextString(jsonData.get("identifier"), "identifier")
+        if len(jsonData.get("identifier")) > 0:
+            fields.append(identifier)
+
+    # Extract raw packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseMessage(jsonData):
+    """Parse Message APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = addresse
+    # field = message_text
+    # field = path
+    # field = raw
+    # field = msgNo
+    # field = response
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["msgNo"]
+    fieldTextKeys = ["from", "to", "via", "addresse"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract message text
+    if "message_text" in jsonData:
+        message = parseTextString(jsonData.get("message_text"), "message_text")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(message)
+
+    # Extract response
+    if "response" in jsonData:
+        message = parseTextString(jsonData.get("response"), "response")
+        if len(jsonData.get("response")) > 0:
+            fields.append(message)
+
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseTextString(rawText, name):
+    '''Parse text strings for invalid characters. Properly escape for
+    line protocol strings if found.
+
+    keyword arguments:
+    rawText -- String to be checked
+    name -- Name of field
+    '''
+
+    # Check if length is valid
+    if len(rawText) > 0:
+        try:
+            # Convert to ASCII and replace invalid characters
+            text = rawText.encode('ascii', 'replace')
+            text = text.replace("\\", "\\\\")
+            text = text.replace("\'", "\\\'")
+            text = text.replace("\"", "\\\"")
+
+            # Create valide libe protocol field string
+            textStr = ("{0}=\"{1}\"".format(name, text))
 
         except UnicodeError as e:
             logger.error(e)
@@ -116,9 +955,28 @@ def jsonToLineProtocol(jsonData):
         except TypeError as e:
             logger.error(e)
 
-        fieldsStr = ",".join(fields)
+        # Return text string if line protocol format
+        return textStr
 
-        return measurement + "," + tagStr + " " + fieldsStr
+    else:
+        # rawText is <= 0
+        # Return text string if line protocol format
+        return rawText
+
+
+def parsePath(path):
+    """Take path and turn into a string
+
+    keyword arguments:
+    path -- list of paths from aprslib
+    """
+
+    # Join path items into a string separated by commas, valid line protocol
+    temp = ",".join(path)
+    pathStr = ("path=\"{0}\"".format(temp))
+
+    # Return line protocol string
+    return pathStr
 
 
 def callback(packet):
@@ -127,23 +985,29 @@ def callback(packet):
     keyword arguments:
     packet -- APRS-IS packet from aprslib connection
     """
-    logger.info(packet)
-
-    # Open a new connection every time, probably SLOWWWW
+    # Open a new connection to influxdb, parse the packet into line protocol
     influxConn = connectInfluxDB()
     line = jsonToLineProtocol(packet)
 
+    # Check for line protocol string
     if line:
-        logger.debug(line)
+        # Write string to database
         try:
             influxConn.write_points([line], protocol='line')
 
-        except StandardError as e:
-            logger.error(e)
-            logger.error(packet)
+        except StandardError:
+            # An error occured before writing to influxdb
+            logger.error('A StandardError occured', exc_info=True)
 
-        except influxdb.exceptions.InfluxDBClientError as e:
-            logger.error(e)
+        except influxdb.exceptions.InfluxDBClientError:
+            # An error occured in the request
+            logger.error('An error occured in the request', exc_info=True)
+            logger.error("Line Protocol: {0}".format(line))
+
+        except influxdb.exceptions.InfluxDBServerError:
+            # An error occured in the server
+            logger.error('An error occured in the server', exc_info=True)
+            logger.error("Line Protocol: {0}".format(line))
 
 
 def connectInfluxDB():
@@ -162,7 +1026,9 @@ def consumer(conn):
     keyword arguments:
     conn -- APRS-IS connection from aprslib
     """
+
     logger.debug("starting consumer thread")
+
     # Obtain raw APRS-IS packets and sent to callback when received
     conn.consumer(callback, immortal=True, raw=False)
 
@@ -173,8 +1039,9 @@ def heartbeat(conn, callsign, interval):
     keyword arguments:
     conn -- APRS-IS connction from aprslib
     callsign -- Callsign of status message
-    interval -- Minutes betwee status messages
+    interval -- Minutes between status messages
     """
+
     logger.debug("Starting heartbeat thread")
     while True:
         # Create timestamp
@@ -244,18 +1111,20 @@ def main():
                      passwd=passcode,
                      port=args.port)
 
+    # Set aprslib logger equal to aprs2influxdb logger
     AIS.logger = logger
+
+    # Connect to APRS-IS servers
     try:
         AIS.connect()
 
-    except aprslib.exceptions.LoginError as e:
-        logger.error(e)
-        logger.info("APRS Login Callsign: {0} Port: {1}".format(args.callsign, args.port))
-        sys.exit(1)
+    except aprslib.exceptions.LoginError:
+        # An error occured
+        logger.error('An aprslib LoginError occured', exc_info=True)
 
-    except aprslib.exceptions.ConnectionError as e:
-        logger.error(e)
-        sys.exit(1)
+    except aprslib.exceptions.ConnectionError:
+        # An error occured
+        logger.error('An aprslib ConnectionError occured', exc_info=True)
 
     # Create heartbeat
     t1 = threading.Thread(target=heartbeat, args=(AIS, args.callsign, args.interval))

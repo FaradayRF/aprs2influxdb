@@ -1,10 +1,20 @@
 # aprs2influxdb
+[![Build Status](https://travis-ci.org/FaradayRF/aprs2influxdb.svg?branch=master)](https://travis-ci.org/FaradayRF/aprs2influxdb)
+
 This program interfaces ham radio APRS-IS servers and saves packet data into an influxdb database. aprs2influxdb handles the connection, parsing, and saving of data into an influxdb database from APRS-IS using line protocol formatted strings. Periodically, a status message is also sent to the APRS-IS server in order to maintain the connection with the APRS-IS server by preventing a timeout.
 
 Supported APRS Packet Formats:
 * uncompressed
+* mic-e
+* object
+* compressed
+* status
+* wx
+* beacon
+* bulletin
+* message
 
-Non-ASCII characters in APRS packets are ignored!
+Non-ASCII characters in APRS packets are replaced!
 
 ## Getting started
 aprs2influxdb installs using pip can can be installed in editable mode with the source code or from [PyPI](https://pypi.python.org/pypi).
