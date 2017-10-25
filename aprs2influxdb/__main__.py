@@ -119,6 +119,28 @@ def parseTelemetry(jsonData, fieldList):
     return fieldList
 
 
+def parseParameters(jsonData, fieldList):
+    if("tPARM" in jsonData):
+        # Should probably just iterate through list of strings and append as I go, like fieldList
+        items = jsonData.get("tPARM")
+        logger.warn(len(items))
+        logger.warn(items)
+        analog1 = items[0]
+        analog2 = items[1]
+        analog3 = items[2]
+        analog4 = items[3]
+        analog5 = items[4]
+        b1 = items[5]
+        b2 = items[6]
+        b3 = items[7]
+        b4 = items[8]
+        b5 = items[9]
+        b6 = items[10]
+        b7 = items[11]
+        b8 = items[12]
+        logger.warn(b8)
+
+
 def parseWeather(jsonData, fieldList):
     '''parse weather data from packets
 
@@ -1001,10 +1023,12 @@ def parseTelemetryMessage(jsonData):
         if len(jsonData.get("raw")) > 0:
             fields.append(comment)
 
+    parseParameters(jsonData, fields)
+
     # Combine final valid line protocol string
     fieldsStr = ",".join(fields)
 
-    logger.warn(measurement + "," + tagStr + " " + fieldsStr)
+    #logger.warn(measurement + "," + tagStr + " " + fieldsStr)
     return measurement + "," + tagStr + " " + fieldsStr
 
 
