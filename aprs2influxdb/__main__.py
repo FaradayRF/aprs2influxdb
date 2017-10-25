@@ -74,6 +74,11 @@ def jsonToLineProtocol(jsonData):
             # Parse message APRS packet
             return parseMessage(jsonData)
 
+        if jsonData["format"] == "telemetry-message":
+            # Parse telemetry-message APRS packet
+            logger.warn(jsonData)
+            #return parseMessage(jsonData)
+
         # All other formats not yes parsed
         logger.debug("Not parsing {0} packets".format(jsonData))
 
@@ -856,6 +861,80 @@ def parseBulletin(jsonData):
 
 def parseMessage(jsonData):
     """Parse Message APRS packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+    ## Schema
+    # measurement = packet
+    # field = from
+    # field = to
+    # tag = format
+    # field = via
+    # field = addresse
+    # field = message_text
+    # field = path
+    # field = raw
+    # field = msgNo
+    # field = response
+
+    # initialize variables
+    tags = []
+    fields = []
+
+    # Set measurement to "packet"
+    measurement = "packet"
+
+    # Obtain tags
+    tags.append("format={0}".format(jsonData.get("format")))
+
+    # Join tags into comma separated string
+    tagStr = ",".join(tags)
+
+    # Create field key lists to iterate through
+    fieldNumKeys = ["msgNo"]
+    fieldTextKeys = ["from", "to", "via", "addresse"]
+
+    # Extract number fields from packet
+    for key in fieldNumKeys:
+        if key in jsonData:
+            fields.append("{0}={1}".format(key, jsonData.get(key)))
+
+    # Extract text fields from packet
+    for key in fieldTextKeys:
+        if key in jsonData:
+            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+
+    # Extract path
+    if "path" in jsonData:
+        fields.append(parsePath(jsonData.get("path")))
+
+    # Extract message text
+    if "message_text" in jsonData:
+        message = parseTextString(jsonData.get("message_text"), "message_text")
+        if len(jsonData.get("message_text")) > 0:
+            fields.append(message)
+
+    # Extract response
+    if "response" in jsonData:
+        message = parseTextString(jsonData.get("response"), "response")
+        if len(jsonData.get("response")) > 0:
+            fields.append(message)
+
+    # Extract raw from packet
+    if "raw" in jsonData:
+        comment = parseTextString(jsonData.get("raw"), "raw")
+        if len(jsonData.get("raw")) > 0:
+            fields.append(comment)
+
+    # Combine final valid line protocol string
+    fieldsStr = ",".join(fields)
+
+    return measurement + "," + tagStr + " " + fieldsStr
+
+
+def parseTelemetryMessage(jsonData):
+    """Parse Telemetry-Message APRS packets into influxedb line protocol
 
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
