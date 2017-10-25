@@ -76,8 +76,8 @@ def jsonToLineProtocol(jsonData):
 
         if jsonData["format"] == "telemetry-message":
             # Parse telemetry-message APRS packet
-            logger.warn(jsonData)
-            #return parseMessage(jsonData)
+            #logger.warn(jsonData)
+            return parseTelemetryMessage(jsonData)
 
         # All other formats not yes parsed
         logger.debug("Not parsing {0} packets".format(jsonData))
@@ -956,8 +956,8 @@ def parseTelemetryMessage(jsonData):
     tags = []
     fields = []
 
-    # Set measurement to "packet"
-    measurement = "packet"
+    # Set measurement to "configs"
+    measurement = "configs"
 
     # Obtain tags
     tags.append("format={0}".format(jsonData.get("format")))
@@ -983,17 +983,17 @@ def parseTelemetryMessage(jsonData):
     if "path" in jsonData:
         fields.append(parsePath(jsonData.get("path")))
 
-    # Extract message text
-    if "message_text" in jsonData:
-        message = parseTextString(jsonData.get("message_text"), "message_text")
-        if len(jsonData.get("message_text")) > 0:
-            fields.append(message)
+    # # Extract message text
+    # if "message_text" in jsonData:
+    #     message = parseTextString(jsonData.get("message_text"), "message_text")
+    #     if len(jsonData.get("message_text")) > 0:
+    #         fields.append(message)
 
-    # Extract response
-    if "response" in jsonData:
-        message = parseTextString(jsonData.get("response"), "response")
-        if len(jsonData.get("response")) > 0:
-            fields.append(message)
+    # # Extract response
+    # if "response" in jsonData:
+    #     message = parseTextString(jsonData.get("response"), "response")
+    #     if len(jsonData.get("response")) > 0:
+    #         fields.append(message)
 
     # Extract raw from packet
     if "raw" in jsonData:
@@ -1004,6 +1004,7 @@ def parseTelemetryMessage(jsonData):
     # Combine final valid line protocol string
     fieldsStr = ",".join(fields)
 
+    logger.warn(measurement + "," + tagStr + " " + fieldsStr)
     return measurement + "," + tagStr + " " + fieldsStr
 
 
