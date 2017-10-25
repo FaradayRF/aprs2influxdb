@@ -121,24 +121,19 @@ def parseTelemetry(jsonData, fieldList):
 
 def parseParameters(jsonData, fieldList):
     if("tPARM" in jsonData):
-        # Should probably just iterate through list of strings and append as I go, like fieldList
+        fieldList.append("{0}=\"{1}\"".format("type", "PARM"))
+
         items = jsonData.get("tPARM")
-        logger.warn(len(items))
-        logger.warn(items)
-        analog1 = items[0]
-        analog2 = items[1]
-        analog3 = items[2]
-        analog4 = items[3]
-        analog5 = items[4]
-        b1 = items[5]
-        b2 = items[6]
-        b3 = items[7]
-        b4 = items[8]
-        b5 = items[9]
-        b6 = items[10]
-        b7 = items[11]
-        b8 = items[12]
-        logger.warn(b8)
+        #logger.warn(items)
+        telemetryList = ["analog1", "analog2", "analog3", "analog4", "analog5", "digital1", "digital2", "digital3", "digital4", "digital5", "digital6", "digital7", "digital8"]
+        for parameter in telemetryList:
+            if(len(items[0]) <= 0):
+                fieldList.append("{0}=\"{1}\"".format(parameter, "RAW"))
+            else:
+                fieldList.append("{0}=\"{1}\"".format(parameter, items.pop(0)))
+
+        # Return fieldList with found items appended
+        return fieldList
 
 
 def parseWeather(jsonData, fieldList):
@@ -1028,7 +1023,8 @@ def parseTelemetryMessage(jsonData):
     # Combine final valid line protocol string
     fieldsStr = ",".join(fields)
 
-    #logger.warn(measurement + "," + tagStr + " " + fieldsStr)
+    if jsonData["from"] == "KB1LQC-1":
+        logger.warn(measurement + "," + tagStr + " " + fieldsStr)
     return measurement + "," + tagStr + " " + fieldsStr
 
 
