@@ -77,7 +77,7 @@ def jsonToLineProtocol(jsonData):
         if jsonData["format"] == "telemetry-message":
             # Parse telemetry-message APRS packet
             #logger.warn(jsonData)
-            return parseTelemetryMessage(jsonData)
+            return parseTelemetryScaling(jsonData)
 
         # All other formats not yes parsed
         logger.debug("Not parsing {0} packets".format(jsonData))
@@ -119,21 +119,24 @@ def parseTelemetry(jsonData, fieldList):
     return fieldList
 
 
-def parseParameters(jsonData, fieldList):
-    if("tPARM" in jsonData):
-        fieldList.append("{0}=\"{1}\"".format("type", "PARM"))
+def parseEquations(jsonData):
+    if("tEQNS" in jsonData):
+        # list.append("{0}=\"{1}\"".format("type", "PARM"))
 
-        items = jsonData.get("tPARM")
-        #logger.warn(items)
-        telemetryList = ["analog1", "analog2", "analog3", "analog4", "analog5", "digital1", "digital2", "digital3", "digital4", "digital5", "digital6", "digital7", "digital8"]
-        for parameter in telemetryList:
-            if(len(items[0]) <= 0):
-                fieldList.append("{0}=\"{1}\"".format(parameter, "RAW"))
-            else:
-                fieldList.append("{0}=\"{1}\"".format(parameter, items.pop(0)))
+        #channels = { "a1": [],"a2": [],"a3": [],"a4": [], "a5": [] }
+        channels = []
+        #equations = {"a": 0, "b": 0, "c": 0, }
+        items = jsonData.get("tEQNS")
 
-        # Return fieldList with found items appended
-        return fieldList
+        for eqn in items:
+            equations = {"a": 0, "b": 0, "c": 0, }
+            equations["a"] = eqn[0]
+            equations["b"] = eqn[1]
+            equations["c"] = eqn[2]
+            channels.append(equations)
+
+        return channels
+    return None
 
 
 def parseWeather(jsonData, fieldList):
@@ -950,12 +953,15 @@ def parseMessage(jsonData):
     return measurement + "," + tagStr + " " + fieldsStr
 
 
-def parseTelemetryMessage(jsonData):
-    """Parse Telemetry-Message APRS packets into influxedb line protocol
+def parseTelemetryScaling(jsonData):
+    """Parse Telemetry-Message APRS scaling value packets into influxedb line protocol
 
     keyword arguments:
     jsonData -- aprslib parsed JSON packet
     """
+
+#Parse into local dictionary and scale
+
     ## Schema
     # measurement = packet
     # field = from
@@ -970,35 +976,43 @@ def parseTelemetryMessage(jsonData):
     # field = response
 
     # initialize variables
-    tags = []
-    fields = []
+    # tags = []
+    # fields = []
+    #
+    # # Set measurement to "configs"
+    # measurement = "configs"
+    #
+    # # Obtain tags
+    # tags.append("format={0}".format(jsonData.get("format")))
+    #
+    equations = parseEquations(jsonData)
+    callsign = jsonData.get("from")
 
-    # Set measurement to "configs"
-    measurement = "configs"
-
-    # Obtain tags
-    tags.append("format={0}".format(jsonData.get("format")))
+    if equations:
+        temp=[{str(callsign): equations}]
+        telemetryDictionary[callsign] = equations
+        #telemetryDictionary[temp[0]]
 
     # Join tags into comma separated string
-    tagStr = ",".join(tags)
+    # tagStr = ",".join(temp)
 
     # Create field key lists to iterate through
-    fieldNumKeys = ["msgNo"]
-    fieldTextKeys = ["from", "to", "via", "addresse"]
+    # fieldNumKeys = ["msgNo"]
+    # fieldTextKeys = ["from", "to", "via", "addresse"]
 
-    # Extract number fields from packet
-    for key in fieldNumKeys:
-        if key in jsonData:
-            fields.append("{0}={1}".format(key, jsonData.get(key)))
+    # # Extract number fields from packet
+    # for key in fieldNumKeys:
+    #     if key in jsonData:
+    #         fields.append("{0}={1}".format(key, jsonData.get(key)))
 
     # Extract text fields from packet
-    for key in fieldTextKeys:
-        if key in jsonData:
-            fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
+    # for key in fieldTextKeys:
+    #     if key in jsonData:
+    #         fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
 
     # Extract path
-    if "path" in jsonData:
-        fields.append(parsePath(jsonData.get("path")))
+    # if "path" in jsonData:
+    #     fields.append(parsePath(jsonData.get("path")))
 
     # # Extract message text
     # if "message_text" in jsonData:
@@ -1013,19 +1027,18 @@ def parseTelemetryMessage(jsonData):
     #         fields.append(message)
 
     # Extract raw from packet
-    if "raw" in jsonData:
-        comment = parseTextString(jsonData.get("raw"), "raw")
-        if len(jsonData.get("raw")) > 0:
-            fields.append(comment)
+    # if "raw" in jsonData:
+    #     comment = parseTextString(jsonData.get("raw"), "raw")
+    #     if len(jsonData.get("raw")) > 0:
+    #         fields.append(comment)
 
-    parseParameters(jsonData, fields)
 
     # Combine final valid line protocol string
-    fieldsStr = ",".join(fields)
+    # fieldsStr = ",".join(fields)
 
-    if jsonData["from"] == "KB1LQC-1":
-        logger.warn(measurement + "," + tagStr + " " + fieldsStr)
-    return measurement + "," + tagStr + " " + fieldsStr
+    # if jsonData["from"] == "KB1LQC-1":
+    # logger.warn(measurement + "," + tagStr + " " + fieldsStr)
+    # return measurement + "," + tagStr + " " + fieldsStr
 
 
 def parseTextString(rawText, name):
@@ -1195,6 +1208,10 @@ def main():
     """
     # Create logger, must be global for functions and threads
     global logger
+
+    # Create telemetry dictionary
+    global telemetryDictionary
+    telemetryDictionary = {}
 
     # Log to sys.prefix + aprs2influxdb.log
     log = os.path.join(sys.prefix, "aprs2influxdb.log")
