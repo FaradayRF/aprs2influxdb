@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 import os
+import math
 
 from logging.handlers import TimedRotatingFileHandler
 
@@ -109,11 +110,31 @@ def parseTelemetry(jsonData, fieldList):
         # Extract IO bits
         if "bits" in items:
             fieldList.append("bits={0}".format(items.get("bits")))
-        # Extra analog values
+
+        # test
+        #logger.warn(telemetryDictionary.get(jsonData["from"]))
+        try:
+            channels = telemetryDictionary[jsonData["from"]]
+            #logger.warn(channels)
+        except KeyError as e:
+            # No scaling values
+            channels = []
+            for eqn in range(5):
+                equations = {"a": 0, "b": 0, "c": 0, }
+                equations["a"] = 0
+                equations["b"] = 1
+                equations["c"] = 0
+                channels.append(equations)
+
+        # Extract analog values
         if "vals" in items:
             values = items.get("vals")
             for analog in range(5):
-                fieldList.append("analog{0}={1}".format(analog + 1, values[analog]))
+                # AxV**2 + B*V + C
+                telemVal = channels[analog]["a"]*math.pow(values[analog],2) + channels[analog]["b"]*values[analog] + channels[analog]["c"]
+                #logger.warn("analog{0}={1}".format(analog + 1, telemVal))
+                fieldList.append("analog{0}={1}".format(analog + 1, telemVal))
+
 
     # Return fieldList with found items appended
     return fieldList
