@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 import os
+import math
 
 from logging.handlers import TimedRotatingFileHandler
 
@@ -74,6 +75,11 @@ def jsonToLineProtocol(jsonData):
             # Parse message APRS packet
             return parseMessage(jsonData)
 
+        if jsonData["format"] == "telemetry-message":
+            # Parse telemetry-message APRS packet
+            # Currently only support scaling values
+            return parseTelemetryScaling(jsonData)
+
         # All other formats not yes parsed
         logger.debug("Not parsing {0} packets".format(jsonData))
 
@@ -104,14 +110,56 @@ def parseTelemetry(jsonData, fieldList):
         # Extract IO bits
         if "bits" in items:
             fieldList.append("bits={0}".format(items.get("bits")))
-        # Extra analog values
+        # Attempt to retrieve scaling values from telemetryDictionary
+        try:
+            channels = telemetryDictionary[jsonData["from"]]
+        except KeyError:
+            # No scaling values found, assign generic scaling to channels
+            channels = []
+            for eqn in range(5):
+                # Create a scaling dictionary for all five measurements
+                equations = {"a": 0, "b": 0, "c": 0, }
+                equations["a"] = 0
+                equations["b"] = 1
+                equations["c"] = 0
+                channels.append(equations)
+
+        # Extract analog values from telemtry packet
         if "vals" in items:
             values = items.get("vals")
             for analog in range(5):
-                fieldList.append("analog{0}={1}".format(analog + 1, values[analog]))
+                # Apply scaling equation A*V**2 + B*V + C
+                telemVal = channels[analog]["a"] * math.pow(values[analog], 2) + channels[analog]["b"] * values[analog] + channels[analog]["c"]
+                fieldList.append("analog{0}={1}".format(analog + 1, telemVal))
 
     # Return fieldList with found items appended
     return fieldList
+
+
+def parseEquations(jsonData):
+    '''
+    Iterates through a telemetry-message packet for tEQNs values which are
+    scaling parameters for telemetry data. Places each equation coefficient into
+    a dictionary which is then placed into a list for each measurement.
+    Returns a channels list or None
+
+    keyword arguments:
+    jsonData -- JSON packet from aprslib
+    '''
+    # Check for tEQNS dictionary
+    if("tEQNS" in jsonData):
+        # Exists, initialize channels list and extract equations list
+        channels = []
+        items = jsonData.get("tEQNS")
+        for eqn in items:
+            # Iterate through each measurement coefficient list, assign to dictionary
+            equations = {"a": 0, "b": 0, "c": 0, }
+            equations["a"] = eqn[0]
+            equations["b"] = eqn[1]
+            equations["c"] = eqn[2]
+            channels.append(equations)
+        return channels
+    return None
 
 
 def parseWeather(jsonData, fieldList):
@@ -928,6 +976,23 @@ def parseMessage(jsonData):
     return measurement + "," + tagStr + " " + fieldsStr
 
 
+def parseTelemetryScaling(jsonData):
+    """Parse Telemetry-Message APRS scaling value packets into influxedb line protocol
+
+    keyword arguments:
+    jsonData -- aprslib parsed JSON packet
+    """
+
+    # Parse packet for equations
+    equations = parseEquations(jsonData)
+
+    if equations:
+        # If equations present, then add to dictionary of station
+        # This is not ideal but required until Grafana supports SELECT queries
+        # in templates.
+        telemetryDictionary[jsonData.get("from")] = equations
+
+
 def parseTextString(rawText, name):
     '''Parse text strings for invalid characters. Properly escape for
     line protocol strings if found.
@@ -1095,6 +1160,10 @@ def main():
     """
     # Create logger, must be global for functions and threads
     global logger
+
+    # Create telemetry dictionary
+    global telemetryDictionary
+    telemetryDictionary = {}
 
     # Log to sys.prefix + aprs2influxdb.log
     log = os.path.join(sys.prefix, "aprs2influxdb.log")
