@@ -77,7 +77,7 @@ def jsonToLineProtocol(jsonData):
 
         if jsonData["format"] == "telemetry-message":
             # Parse telemetry-message APRS packet
-            #logger.warn(jsonData)
+            # Currently only support scaling values
             return parseTelemetryScaling(jsonData)
 
         # All other formats not yes parsed
@@ -110,52 +110,54 @@ def parseTelemetry(jsonData, fieldList):
         # Extract IO bits
         if "bits" in items:
             fieldList.append("bits={0}".format(items.get("bits")))
-
-        # test
-        #logger.warn(telemetryDictionary.get(jsonData["from"]))
+        # Attempt to retrieve scaling values from telemetryDictionary
         try:
             channels = telemetryDictionary[jsonData["from"]]
-            #logger.warn(channels)
         except KeyError as e:
-            # No scaling values
+            # No scaling values found, assign generic scaling to channels
             channels = []
             for eqn in range(5):
+                # Create a scaling dictionary for all five measurements
                 equations = {"a": 0, "b": 0, "c": 0, }
                 equations["a"] = 0
                 equations["b"] = 1
                 equations["c"] = 0
                 channels.append(equations)
 
-        # Extract analog values
+        # Extract analog values from telemtry packet
         if "vals" in items:
             values = items.get("vals")
             for analog in range(5):
-                # AxV**2 + B*V + C
+                # Apply scaling equation A*V**2 + B*V + C
                 telemVal = channels[analog]["a"]*math.pow(values[analog],2) + channels[analog]["b"]*values[analog] + channels[analog]["c"]
-                #logger.warn("analog{0}={1}".format(analog + 1, telemVal))
                 fieldList.append("analog{0}={1}".format(analog + 1, telemVal))
-
 
     # Return fieldList with found items appended
     return fieldList
 
 
 def parseEquations(jsonData):
+    '''
+    Iterates through a telemetry-message packet for tEQNs values which are
+    scaling parameters for telemetry data. Places each equation coefficient into
+    a dictionary which is then placed into a list for each measurement.
+    Returns a channels list or None
+
+    keyword arguments:
+    jsonData -- JSON packet from aprslib
+    '''
+    # Check for tEQNS dictionary
     if("tEQNS" in jsonData):
-        # list.append("{0}=\"{1}\"".format("type", "PARM"))
-
-        #channels = { "a1": [],"a2": [],"a3": [],"a4": [], "a5": [] }
+        # Exists, initialize channels list and extract equations list
         channels = []
-        #equations = {"a": 0, "b": 0, "c": 0, }
         items = jsonData.get("tEQNS")
-
         for eqn in items:
+            # Iterate through each measurement coefficient list, assign to dictionary
             equations = {"a": 0, "b": 0, "c": 0, }
             equations["a"] = eqn[0]
             equations["b"] = eqn[1]
             equations["c"] = eqn[2]
             channels.append(equations)
-
         return channels
     return None
 
@@ -981,85 +983,14 @@ def parseTelemetryScaling(jsonData):
     jsonData -- aprslib parsed JSON packet
     """
 
-#Parse into local dictionary and scale
-
-    ## Schema
-    # measurement = packet
-    # field = from
-    # field = to
-    # tag = format
-    # field = via
-    # field = addresse
-    # field = message_text
-    # field = path
-    # field = raw
-    # field = msgNo
-    # field = response
-
-    # initialize variables
-    # tags = []
-    # fields = []
-    #
-    # # Set measurement to "configs"
-    # measurement = "configs"
-    #
-    # # Obtain tags
-    # tags.append("format={0}".format(jsonData.get("format")))
-    #
+    # Parse packet for equations
     equations = parseEquations(jsonData)
-    callsign = jsonData.get("from")
 
     if equations:
-        temp=[{str(callsign): equations}]
-        telemetryDictionary[callsign] = equations
-        #telemetryDictionary[temp[0]]
-
-    # Join tags into comma separated string
-    # tagStr = ",".join(temp)
-
-    # Create field key lists to iterate through
-    # fieldNumKeys = ["msgNo"]
-    # fieldTextKeys = ["from", "to", "via", "addresse"]
-
-    # # Extract number fields from packet
-    # for key in fieldNumKeys:
-    #     if key in jsonData:
-    #         fields.append("{0}={1}".format(key, jsonData.get(key)))
-
-    # Extract text fields from packet
-    # for key in fieldTextKeys:
-    #     if key in jsonData:
-    #         fields.append("{0}=\"{1}\"".format(key, jsonData.get(key)))
-
-    # Extract path
-    # if "path" in jsonData:
-    #     fields.append(parsePath(jsonData.get("path")))
-
-    # # Extract message text
-    # if "message_text" in jsonData:
-    #     message = parseTextString(jsonData.get("message_text"), "message_text")
-    #     if len(jsonData.get("message_text")) > 0:
-    #         fields.append(message)
-
-    # # Extract response
-    # if "response" in jsonData:
-    #     message = parseTextString(jsonData.get("response"), "response")
-    #     if len(jsonData.get("response")) > 0:
-    #         fields.append(message)
-
-    # Extract raw from packet
-    # if "raw" in jsonData:
-    #     comment = parseTextString(jsonData.get("raw"), "raw")
-    #     if len(jsonData.get("raw")) > 0:
-    #         fields.append(comment)
-
-
-    # Combine final valid line protocol string
-    # fieldsStr = ",".join(fields)
-
-    # if jsonData["from"] == "KB1LQC-1":
-    # logger.warn(measurement + "," + tagStr + " " + fieldsStr)
-    # return measurement + "," + tagStr + " " + fieldsStr
+        # If equations present, then add to dictionary of station
+        # This is not ideal but required until Grafana supports SELECT queries
+        # in templates.
+        telemetryDictionary[jsonData.get("from")] = equations
 
 
 def parseTextString(rawText, name):
