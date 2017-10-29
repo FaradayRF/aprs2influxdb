@@ -113,7 +113,7 @@ def parseTelemetry(jsonData, fieldList):
         # Attempt to retrieve scaling values from telemetryDictionary
         try:
             channels = telemetryDictionary[jsonData["from"]]
-        except KeyError as e:
+        except KeyError:
             # No scaling values found, assign generic scaling to channels
             channels = []
             for eqn in range(5):
@@ -129,7 +129,7 @@ def parseTelemetry(jsonData, fieldList):
             values = items.get("vals")
             for analog in range(5):
                 # Apply scaling equation A*V**2 + B*V + C
-                telemVal = channels[analog]["a"]*math.pow(values[analog],2) + channels[analog]["b"]*values[analog] + channels[analog]["c"]
+                telemVal = channels[analog]["a"] * math.pow(values[analog], 2) + channels[analog]["b"] * values[analog] + channels[analog]["c"]
                 fieldList.append("analog{0}={1}".format(analog + 1, telemVal))
 
     # Return fieldList with found items appended
