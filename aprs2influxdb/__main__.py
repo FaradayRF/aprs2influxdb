@@ -18,8 +18,10 @@ parser.add_argument('--dbport', help='Set InfluxDB port', default="8086")
 parser.add_argument('--dbuser', help='Set InfluxDB user', default="root")
 parser.add_argument('--dbpassword', help='Set InfluxDB password', default="root")
 parser.add_argument('--dbname', help='Set InfluxDB database name', default="mydb")
+parser.add_argument('--host', help='Set APRS-IS host', default="rotate.aprs.net")
 parser.add_argument('--callsign', help='Set APRS-IS login callsign', default="nocall")
 parser.add_argument('--port', help='Set APRS-IS port', default="10152")
+parser.add_argument('--filter', help='Set APRS-IS filter', default="")
 parser.add_argument('--interval', help='Set APRS-IS heartbeat interval in minutes', default="15")
 parser.add_argument('--debug', help='Set logging level to DEBUG', action="store_true")
 
@@ -1178,7 +1180,11 @@ def main():
     passcode = aprslib.passcode(args.callsign)
     AIS = aprslib.IS(args.callsign,
                      passwd=passcode,
+                     host=args.host,
                      port=args.port)
+
+    #  Set filter to APRS-IS server
+    AIS.set_filter(args.filter)
 
     # Set aprslib logger equal to aprs2influxdb logger
     AIS.logger = logger
